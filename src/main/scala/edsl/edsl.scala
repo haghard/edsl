@@ -6,6 +6,8 @@ package edsl
 
 import scala.util.control.NonFatal
 
+/** Constraints a number of ways to build `NumTag` (only 3)
+  */
 trait NumTag[T]:
   def code: Byte
 
