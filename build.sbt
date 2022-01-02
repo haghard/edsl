@@ -45,7 +45,7 @@ resolvers ++= Seq(Resolver.jcenterRepo, "Sonatype Public" at "https://oss.sonaty
 
 libraryDependencies ++= Seq(
   //https://repo1.maven.org/maven2/com/lihaoyi/ammonite_3.0.1/2.4.0-11-5b9ff5e7/
-  // ("com.lihaoyi" % "ammonite"  % "2.4.1"  % "test").cross(CrossVersion.full) for scala 3.0.2
+  // ("com.lihaoyi" % "ammonite"  % "2.5.0"  % "test").cross(CrossVersion.full) for scala 3.0.2
 )
 
 //Compile / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused:imports", "-Yno-imports", "-deprecation")
