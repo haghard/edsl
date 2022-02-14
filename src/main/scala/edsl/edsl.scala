@@ -1,4 +1,4 @@
-// Copyright (c) 2021 by Vadim Bondarev
+// Copyright (c) 2021-22 by Vadim Bondarev
 // This software is licensed under the Apache License, Version 2.0.
 // You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
 
@@ -6,12 +6,13 @@ package edsl
 
 import scala.util.control.NonFatal
 
-/** Constraints a number of ways to build `NumTag` (only 3)
+/** Constraints a number of ways to build `NumTag` (only 3 ways)
   */
 trait NumTag[T]:
   def code: Byte
 
 object NumTag:
+
   given Integer: NumTag[Int] = new NumTag[Int] {
     val code: Byte = 0x00
     override val toString = "i"
@@ -24,6 +25,7 @@ object NumTag:
     val code: Byte = 0x02
     override val toString = "l"
   }
+
 end NumTag
 
 trait Coercion[In, Out]:
@@ -50,6 +52,12 @@ object Coercion:
     def from = NumTag.Dbl
     def to = NumTag.Integer
 
+/** DslElement is an example of GADT.
+  *
+  * A GADT is a very specific example of a parametrically polymorphic ADT where you are allowed to specialize a type
+  * parameter A in terms of the sum type. Specialization of the type A of DslElement inside the children together with
+  * being able to reconstruct this information in pattern matching is known as GADTs.
+  */
 enum DslElement[A]:
   self ⇒
 
@@ -164,7 +172,6 @@ object Program:
 
   def apply(): Unit =
     try
-
       val exp0 = 1.lit + 5.lit * 10.6.lit.as[Int]
       val exp1 = 1.67.lit * 10.lit.as[Double] + 89.lit.as[Double]
       val exp2 = "1.67".parse[Double] + 10.lit.as[Double]
