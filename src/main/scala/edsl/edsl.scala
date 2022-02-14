@@ -101,16 +101,16 @@ object DslElement:
   def serialize[T](v: DslElement[T]): String =
     v match
       case DslElement.Plus(a, b, _) =>
-        s"Pl|${serialize(a)}|${serialize(b)}"
+        s"+|${serialize(a)}|${serialize(b)}"
 
       case DslElement.Minus(a, b, _) =>
-        s"Min|${serialize(a)}|${serialize(b)}"
+        s"-|${serialize(a)}|${serialize(b)}"
 
       case DslElement.Multiply(a, b, _) =>
-        s"Mul|${serialize(a)}|${serialize(b)}"
+        s"*|${serialize(a)}|${serialize(b)}"
 
       case op: DslElement.Negate[T] =>
-        s"Neg|${serialize(op.v)}"
+        s"--|${serialize(op.v)}"
 
       case op: DslElement.Coercible[in, out] =>
         val from = op.c.from.code
@@ -153,16 +153,16 @@ object DslElement:
       case op: DslElement.Coercible[in, out] =>
         Coercion.convert(op.c.from, op.c.to)(eval(op.v))
 
-extension [A: NumTag](x: A)
+extension [A: NumTag](v: A)
   def lit(using tag: NumTag[A]): DslElement[A] =
-    DslElement.Val(x, tag)
+    DslElement.Val(v, tag)
 
-extension (x: String)
+extension (v: String)
   def parse[A: NumTag](using tag: NumTag[A]): DslElement[A] =
     tag match
-      case NumTag.Integer ⇒ DslElement.Val(x.toInt, tag)
-      case NumTag.Dbl ⇒ DslElement.Val(x.toDouble, tag)
-      case NumTag.Lng ⇒ DslElement.Val(x.toLong, tag)
+      case NumTag.Integer ⇒ DslElement.Val(v.toInt, tag)
+      case NumTag.Dbl ⇒ DslElement.Val(v.toDouble, tag)
+      case NumTag.Lng ⇒ DslElement.Val(v.toLong, tag)
 
 @main def app(): Unit = Program()
 
