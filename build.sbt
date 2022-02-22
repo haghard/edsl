@@ -44,6 +44,10 @@ scalafmtOnCompile := true
 resolvers ++= Seq(Resolver.jcenterRepo, "Sonatype Public" at "https://oss.sonatype.org/content/groups/public/")
 
 libraryDependencies ++= Seq(
+
+  //Try this izumi.reflect.Tag
+  //"dev.zio" %% "izumi-reflect" % "2.0.8",
+
   //https://mvnrepository.com/artifact/com.lihaoyi/ammonite_3.1.1
   //("com.lihaoyi" % "ammonite"  % "2.5.2"  % "test").cross(CrossVersion.full)
   //("com.lihaoyi" %% "ammonite" % "2.5.1-7-cd989427" % "test").cross(CrossVersion.full)

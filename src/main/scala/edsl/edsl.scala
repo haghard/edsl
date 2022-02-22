@@ -154,7 +154,7 @@ object DslElement:
         Coercion.convert(op.c.from, op.c.to)(eval(op.v))
 
 extension [A: NumTag](v: A)
-  def lit(using tag: NumTag[A]): DslElement[A] =
+  inline def lit(using tag: NumTag[A]): DslElement[A] =
     DslElement.Val(v, tag)
 
 extension (v: String)
