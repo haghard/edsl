@@ -94,25 +94,36 @@ enum DslElement[A]:
   case Negate(v: DslElement[A], N: NumTag[A])
   case Val(v: A, tag: NumTag[A])
   case Coercible[A, B](v: DslElement[A], c: Coercion[A, B]) extends DslElement[B]
-  case Eq[
-      A
-    ](
-      left: DslElement[A], right: DslElement[A], N: NumTag[A],
-    ) extends DslElement[Boolean]
+
+  case Eq(
+      left: DslElement[A],
+      right: DslElement[A],
+      N: NumTag[A]) extends DslElement[Boolean]
+
+  /*
+  TODO
+  case GreaterThan(
+    left: DslElement[A],
+    right: DslElement[A],
+    N: NumTag[A]) extends DslElement[Boolean]
+
+  case GreaterOrEq(
+    left: DslElement[A],
+    right: DslElement[A],
+    N: NumTag[A]) extends DslElement[Boolean]*/
 
   case Cond(
       cond: DslElement[Boolean],
       ifTrue: DslElement[A],
-      ifFalse: DslElement[A])
+      ifFalse: DslElement[A]) extends DslElement[A]
 
 object DslElement:
 
   def If[A](
-      c: DslElement[Boolean],
-      a: DslElement[A],
-      b: DslElement[A],
-    ): DslElement[A] =
-    Cond(c, a, b)
+      cond: DslElement[Boolean],
+      ifTrue: DslElement[A],
+      ifFalse: DslElement[A],
+    ): DslElement[A] = Cond(cond, ifTrue, ifFalse)
 
   def serialize[T](v: DslElement[T]): String =
     v match
@@ -217,7 +228,7 @@ object Program:
 
       println(serialize(1.lit === 10.6.lit.as[Int]))
 
-      val exp = If(1.lit.===(2.lit), 0.lit, 2.lit)
+      val exp = If(11.lit.===(11.lit), 1.6.lit, 2.1.lit - 1.lit)
       println(serialize(exp))
       println(eval(exp))
 
