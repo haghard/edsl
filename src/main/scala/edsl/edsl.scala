@@ -70,6 +70,8 @@ enum DslElement[A]:
   def *(that: DslElement[A])(using N: NumTag[A]): DslElement[A] =
     Multiply(self, that, N)
 
+  def ===(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = Eq(self, that, N)
+
   def as[B](using c: Coercion[A, B]): DslElement[B] = Coercible[A, B](self, c)
 
   def d(using c: Coercion[A, Double]): DslElement[Double] = Coercible(self, c)
@@ -79,24 +81,38 @@ enum DslElement[A]:
   case Plus(
       a: DslElement[A],
       b: DslElement[A],
-      N: NumTag[A],
-    )
+      N: NumTag[A])
   case Minus(
       a: DslElement[A],
       b: DslElement[A],
-      N: NumTag[A],
-    )
+      N: NumTag[A])
   case Multiply(
       a: DslElement[A],
       b: DslElement[A],
-      N: NumTag[A],
-    )
+      N: NumTag[A])
 
   case Negate(v: DslElement[A], N: NumTag[A])
   case Val(v: A, tag: NumTag[A])
   case Coercible[A, B](v: DslElement[A], c: Coercion[A, B]) extends DslElement[B]
+  case Eq[
+      A
+    ](
+      left: DslElement[A], right: DslElement[A], N: NumTag[A],
+    ) extends DslElement[Boolean]
+
+  case Cond(
+      cond: DslElement[Boolean],
+      ifTrue: DslElement[A],
+      ifFalse: DslElement[A])
 
 object DslElement:
+
+  def If[A](
+      c: DslElement[Boolean],
+      a: DslElement[A],
+      b: DslElement[A],
+    ): DslElement[A] =
+    Cond(c, a, b)
 
   def serialize[T](v: DslElement[T]): String =
     v match
@@ -119,6 +135,12 @@ object DslElement:
 
       case DslElement.Val(v, tag) =>
         s"${tag.code}:$v"
+
+      case DslElement.Eq(left, right, _) =>
+        s"${serialize(left)}==${serialize(right)})"
+
+      case DslElement.Cond(cond, ifTrue, ifFalse) =>
+        s"if(${serialize(cond)}) ${serialize(ifTrue)} else ${serialize(ifFalse)}"
 
   def deserialize(expr: String): DslElement[?] = ???
 
@@ -153,6 +175,12 @@ object DslElement:
       case op: DslElement.Coercible[in, out] =>
         Coercion.convert(op.c.from, op.c.to)(eval(op.v))
 
+      case op: DslElement.Eq[in] =>
+        eval(op.left) == eval(op.right)
+
+      case DslElement.Cond(cond, ifTrue, ifFalse) =>
+        if (eval(cond)) eval(ifTrue) else eval(ifFalse)
+
 extension [A: NumTag](v: A)
   inline def lit(using tag: NumTag[A]): DslElement[A] =
     DslElement.Val(v, tag)
@@ -169,6 +197,7 @@ extension (v: String)
 object Program:
 
   import NumTag.*
+  import DslElement.*
 
   def apply(): Unit =
     try
@@ -176,13 +205,20 @@ object Program:
       val exp1 = 1.67.lit * 10.lit.as[Double] + 89.lit.as[Double]
       val exp2 = "1.67".parse[Double] + 10.lit.as[Double]
 
-      val result0 = DslElement.eval(exp0)
+      val result0 = eval(exp0)
       println(result0)
-      val result1 = DslElement.eval(exp1)
+      val result1 = eval(exp1)
       println(result1)
-      val result2 = DslElement.eval(exp2)
+      val result2 = eval(exp2)
       println(result2)
 
-      println(DslElement.serialize(exp1))
+      println(serialize(exp1))
+      println(eval(10.6.lit === 10.lit))
+
+      println(serialize(1.lit === 10.6.lit.as[Int]))
+
+      val exp = If(1.lit.===(2.lit), 0.lit, 2.lit)
+      println(serialize(exp))
+      println(eval(exp))
 
     catch { case NonFatal(ex) ⇒ ex.printStackTrace }
