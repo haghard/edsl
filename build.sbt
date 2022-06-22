@@ -29,7 +29,7 @@ lazy val commonSettings = scalac3Settings ++ Seq(
 
   //sbt headerCreate
   licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
-  scalaVersion := "3.1.2",
+  scalaVersion := "3.1.3",
   headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
   headerLicense  := Some(HeaderLicense.Custom(
     """|Copyright (c) 2021-22 by Vadim Bondarev
@@ -60,11 +60,13 @@ promptTheme := ScalapenosTheme
 
 scalafmtOnCompile := true
 
+/*
 Test / sourceGenerators += Def.task {
   val file = (Test / sourceManaged).value / "amm.scala"
   IO.write(file, """object amm extends App { ammonite.Main().run() }""")
   Seq(file)
 }.taskValue
+*/
 
 
 addCommandAlias("c", "compile")

@@ -157,7 +157,7 @@ object Program:
     // This is valid (if 1 + 2 = 3 then 4 else 5).
     val exp = Cond(
       Eq(
-        (Add(Num(4), Num(2))),
+        Add(Num(4), Num(2)),
         Num(3),
       ),
       Num(4),

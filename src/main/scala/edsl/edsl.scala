@@ -34,7 +34,7 @@ trait Coercion[In, Out]:
 
 object Coercion:
 
-  def convert[A, B](from: NumTag[A], to: NumTag[B]): A ⇒ B =
+  def convert[A, B](from: NumTag[A], to: NumTag[B]): A => B =
     (from, to) match
       case (NumTag.Integer, NumTag.Dbl) => (in: Int) => in.toDouble
       case (NumTag.Integer, NumTag.Lng) => (in: Int) => in.toLong
@@ -59,7 +59,7 @@ object Coercion:
   * being able to reconstruct this information in pattern matching is known as GADTs.
   */
 enum DslElement[A]:
-  self ⇒
+  self =>
 
   def +(that: DslElement[A])(using N: NumTag[A]): DslElement[A] =
     Plus(self, that, N)
@@ -199,9 +199,9 @@ extension [A: NumTag](v: A)
 extension (v: String)
   def parse[A: NumTag](using tag: NumTag[A]): DslElement[A] =
     tag match
-      case NumTag.Integer ⇒ DslElement.Val(v.toInt, tag)
-      case NumTag.Dbl ⇒ DslElement.Val(v.toDouble, tag)
-      case NumTag.Lng ⇒ DslElement.Val(v.toLong, tag)
+      case NumTag.Integer => DslElement.Val(v.toInt, tag)
+      case NumTag.Dbl => DslElement.Val(v.toDouble, tag)
+      case NumTag.Lng => DslElement.Val(v.toLong, tag)
 
 @main def app(): Unit = Program()
 
@@ -232,4 +232,4 @@ object Program:
       println(serialize(exp))
       println(eval(exp))
 
-    catch { case NonFatal(ex) ⇒ ex.printStackTrace }
+    catch { case NonFatal(ex) => ex.printStackTrace }
