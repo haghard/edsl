@@ -1,4 +1,4 @@
-# edsl #
+# EDSL #
 
 ### Statically typed dsl for numeric operations
 

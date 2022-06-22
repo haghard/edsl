@@ -5,6 +5,7 @@ lazy val `edsl` = (project in file(".")).settings(commonSettings)
 lazy val scalac3Settings = Seq(
   scalacOptions ++= Seq(
     "-deprecation",
+    "-explain",
     "-feature",
     "-language:implicitConversions",
     "-unchecked",
@@ -13,7 +14,7 @@ lazy val scalac3Settings = Seq(
     //"-Wunused",
     "-Ykind-projector",
     "-Ysafe-init", //guards against forward access reference
-  ) ++ Seq("-rewrite", "-indent") ++ Seq("-source", "future")
+  ) ++ Seq("-rewrite", "-indent") ++ Seq("-source", "future-migration")
 )
 
 lazy val commonSettings = scalac3Settings ++ Seq(
@@ -26,6 +27,7 @@ lazy val commonSettings = scalac3Settings ++ Seq(
   run / fork := false,
 
   Compile / console / scalacOptions --= Seq("-Wunused:_", "-Xfatal-warnings"),
+  Test / console / scalacOptions := (Compile / console / scalacOptions).value,
 
   //sbt headerCreate
   licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
