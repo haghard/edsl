@@ -70,6 +70,8 @@ enum DslElement[A]:
   def *(that: DslElement[A])(using N: NumTag[A]): DslElement[A] =
     Multiply(self, that, N)
 
+  def unary_-(using N: NumTag[A]): DslElement[A] = Negate(self, N)
+
   def ===(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = Eq(self, that, N)
 
   def >(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = GreaterThan(self, that, N)
@@ -153,7 +155,7 @@ object DslElement:
         s"*|${serialize(a)}|${serialize(b)}"
 
       case op: DslElement.Negate[T] =>
-        s"--|${serialize(op.v)}"
+        s"neg|${serialize(op.v)}"
 
       case op: DslElement.Coercible[in, out] =>
         val from = op.c.from.code
@@ -285,7 +287,8 @@ object Program:
       println(serialize(exp))
       println(eval(exp))
 
-      val exp3 = If(2.1.lit >= 1.56.lit, If(2.lit > 1.lit, 1.lit, 0.lit), 0.lit)
+      val exp3 = If(2.1.lit <= 1.56.lit, If(2.lit < 1.lit, 1.lit, 0.lit), -(2.lit + -1.lit))
+
       println(serialize(exp3))
       println(eval(exp3))
 
