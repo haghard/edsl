@@ -37,20 +37,20 @@ object Coercion:
   def convert[A, B](from: NumTag[A], to: NumTag[B]): A => B =
     (from, to) match
       case (NumTag.Integer, NumTag.Dbl) => (in: Int) => in.toDouble
-      case (NumTag.Integer, NumTag.Lng) => (in: Int) => in.toLong
       case (NumTag.Dbl, NumTag.Integer) => (in: Double) => in.toInt
+      case (NumTag.Integer, NumTag.Lng) => (in: Int) => in.toLong
 
   given IntToDouble: Coercion[Int, Double] with
     def from = NumTag.Integer
     def to = NumTag.Dbl
 
-  given IntToLong: Coercion[Int, Long] with
-    def from = NumTag.Integer
-    def to = NumTag.Lng
-
   given DoubleToInt: Coercion[Double, Int] with
     def from = NumTag.Dbl
     def to = NumTag.Integer
+
+  given IntToLong: Coercion[Int, Long] with
+    def from = NumTag.Integer
+    def to = NumTag.Lng
 
 /** DslElement is an example of GADT.
   *
@@ -71,6 +71,14 @@ enum DslElement[A]:
     Multiply(self, that, N)
 
   def ===(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = Eq(self, that, N)
+
+  def >(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = GreaterThan(self, that, N)
+
+  def >=(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = GreaterOrEq(self, that, N)
+
+  def <(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = LesserThan(self, that, N)
+
+  def <=(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = LesserOrEq(self, that, N)
 
   def as[B](using c: Coercion[A, B]): DslElement[B] = Coercible[A, B](self, c)
 
@@ -100,17 +108,25 @@ enum DslElement[A]:
       right: DslElement[A],
       N: NumTag[A]) extends DslElement[Boolean]
 
-  /*
-  TODO
   case GreaterThan(
-    left: DslElement[A],
-    right: DslElement[A],
-    N: NumTag[A]) extends DslElement[Boolean]
+      left: DslElement[A],
+      right: DslElement[A],
+      N: NumTag[A]) extends DslElement[Boolean]
 
   case GreaterOrEq(
-    left: DslElement[A],
-    right: DslElement[A],
-    N: NumTag[A]) extends DslElement[Boolean]*/
+      left: DslElement[A],
+      right: DslElement[A],
+      N: NumTag[A]) extends DslElement[Boolean]
+
+  case LesserThan(
+      left: DslElement[A],
+      right: DslElement[A],
+      N: NumTag[A]) extends DslElement[Boolean]
+
+  case LesserOrEq(
+      left: DslElement[A],
+      right: DslElement[A],
+      N: NumTag[A]) extends DslElement[Boolean]
 
   case Cond(
       cond: DslElement[Boolean],
@@ -149,6 +165,18 @@ object DslElement:
 
       case DslElement.Eq(left, right, _) =>
         s"${serialize(left)}==${serialize(right)})"
+
+      case DslElement.GreaterThan(left, right, _) =>
+        s">|${serialize(left)}|${serialize(right)}"
+
+      case DslElement.GreaterOrEq(left, right, _) =>
+        s">=|${serialize(left)}|${serialize(right)}"
+
+      case DslElement.LesserThan(left, right, _) =>
+        s"<|${serialize(left)}|${serialize(right)}"
+
+      case DslElement.LesserOrEq(left, right, _) =>
+        s"<=|${serialize(left)}|${serialize(right)}"
 
       case DslElement.Cond(cond, ifTrue, ifFalse) =>
         s"if(${serialize(cond)}) ${serialize(ifTrue)} else ${serialize(ifFalse)}"
@@ -189,6 +217,30 @@ object DslElement:
       case op: DslElement.Eq[in] =>
         eval(op.left) == eval(op.right)
 
+      case op: DslElement.LesserThan[in] =>
+        op.N match
+          case NumTag.Integer => eval(op.left) < eval(op.right)
+          case NumTag.Dbl     => eval(op.left) < eval(op.right)
+          case NumTag.Lng     => eval(op.left) < eval(op.right)
+
+      case op: DslElement.LesserOrEq[in] =>
+        op.N match
+          case NumTag.Integer => eval(op.left) <= eval(op.right)
+          case NumTag.Dbl     => eval(op.left) <= eval(op.right)
+          case NumTag.Lng     => eval(op.left) <= eval(op.right)
+
+      case op: DslElement.GreaterThan[in] =>
+        op.N match
+          case NumTag.Integer => eval(op.left) > eval(op.right)
+          case NumTag.Dbl     => eval(op.left) > eval(op.right)
+          case NumTag.Lng     => eval(op.left) > eval(op.right)
+
+      case op: DslElement.GreaterOrEq[in] =>
+        op.N match
+          case NumTag.Integer => eval(op.left) >= eval(op.right)
+          case NumTag.Dbl     => eval(op.left) >= eval(op.right)
+          case NumTag.Lng     => eval(op.left) >= eval(op.right)
+
       case DslElement.Cond(cond, ifTrue, ifFalse) =>
         if (eval(cond)) eval(ifTrue) else eval(ifFalse)
 
@@ -200,8 +252,8 @@ extension (v: String)
   def parse[A: NumTag](using tag: NumTag[A]): DslElement[A] =
     tag match
       case NumTag.Integer => DslElement.Val(v.toInt, tag)
-      case NumTag.Dbl => DslElement.Val(v.toDouble, tag)
-      case NumTag.Lng => DslElement.Val(v.toLong, tag)
+      case NumTag.Dbl     => DslElement.Val(v.toDouble, tag)
+      case NumTag.Lng     => DslElement.Val(v.toLong, tag)
 
 @main def app(): Unit = Program()
 
@@ -229,7 +281,12 @@ object Program:
       println(serialize(1.lit === 10.6.lit.as[Int]))
 
       val exp = If(11.lit.===(11.lit), 1.6.lit, 2.1.lit - 1.lit)
+
       println(serialize(exp))
       println(eval(exp))
+
+      val exp3 = If(2.1.lit >= 1.56.lit, If(2.lit > 1.lit, 1.lit, 0.lit), 0.lit)
+      println(serialize(exp3))
+      println(eval(exp3))
 
     catch { case NonFatal(ex) => ex.printStackTrace }
