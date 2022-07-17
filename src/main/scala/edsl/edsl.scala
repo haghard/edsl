@@ -91,18 +91,20 @@ enum DslElement[A]:
   case Plus(
       a: DslElement[A],
       b: DslElement[A],
-      N: NumTag[A])
+      N: NumTag[A]) extends DslElement[A]
   case Minus(
       a: DslElement[A],
       b: DslElement[A],
-      N: NumTag[A])
+      N: NumTag[A]) extends DslElement[A]
   case Multiply(
       a: DslElement[A],
       b: DslElement[A],
-      N: NumTag[A])
+      N: NumTag[A]) extends DslElement[A]
 
-  case Negate(v: DslElement[A], N: NumTag[A])
-  case Val(v: A, tag: NumTag[A])
+  case Negate(v: DslElement[A], N: NumTag[A]) extends DslElement[A]
+
+  case Val(v: A, tag: NumTag[A]) extends DslElement[A]
+
   case Coercible[A, B](v: DslElement[A], c: Coercion[A, B]) extends DslElement[B]
 
   case Eq(
@@ -138,10 +140,10 @@ enum DslElement[A]:
 object DslElement:
 
   def If[A](
-      cond: DslElement[Boolean],
+      when: DslElement[Boolean],
       ifTrue: DslElement[A],
       ifFalse: DslElement[A],
-    ): DslElement[A] = Cond(cond, ifTrue, ifFalse)
+    ): DslElement[A] = Cond(when, ifTrue, ifFalse)
 
   def serialize[T](v: DslElement[T]): String =
     v match
@@ -155,12 +157,12 @@ object DslElement:
         s"*|${serialize(a)}|${serialize(b)}"
 
       case op: DslElement.Negate[T] =>
-        s"neg|${serialize(op.v)}"
+        s"Neg|${serialize(op.v)}"
 
       case op: DslElement.Coercible[in, out] =>
         val from = op.c.from.code
         val to = op.c.to.code
-        s"COERCE_TO:$from->$to|${serialize(op.v)}"
+        s"Coerce:$from->$to|${serialize(op.v)}"
 
       case DslElement.Val(v, tag) =>
         s"${tag.code}:$v"
