@@ -13,18 +13,17 @@ trait NumTag[T]:
 
 object NumTag:
 
-  given Integer: NumTag[Int] = new NumTag[Int] {
+  given Integer: NumTag[Int] with
     val code: Byte = 0x00
     override val toString = "i"
-  }
-  given Dbl: NumTag[Double] = new NumTag[Double] {
+
+  given Dbl: NumTag[Double] with
     val code: Byte = 0x01
     override val toString = "d"
-  }
-  given Lng: NumTag[Long] = new NumTag[Long] {
+
+  given Lng: NumTag[Long] with
     val code: Byte = 0x02
     override val toString = "l"
-  }
 
 end NumTag
 
