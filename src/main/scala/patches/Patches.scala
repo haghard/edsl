@@ -85,18 +85,11 @@ object Patches:
     def applyPatch(state: UserState): [Patch <: UserPatch[?]] => Patch => UserState =
       [Patch <: UserPatch[?]] => { (arg: Patch) =>
         arg match
-          case UserPatch.SetUserId(userId) =>
-            // println(s"${classOf[UserPatch.SetUserId].getSimpleName}($userId)")
-            state.modify(_.id).setTo(userId)
-          case UserPatch.AddSibling(userId) =>
-            // println(s"${classOf[UserPatch.AddSibling].getSimpleName}($userId)")
-            state.modify(_.siblings).using(_ + userId)
-          case UserPatch.RmSibling(userId) =>
-            // println(s"${classOf[UserPatch.RmSibling].getSimpleName}($userId)")
-            state.modify(_.siblings).using(_ - userId)
-          case UserPatch.AddPermission(userId, p) =>
-            // println(s"${classOf[UserPatch.AddPermission].getSimpleName}($userId,$p)")
-            state.modify(_.usrPermissions).using(_ + (userId -> p))
+          case UserPatch.SetUserId(userId)        => state.modify(_.id).setTo(userId)
+          case UserPatch.AddSibling(userId)       => state.modify(_.siblings).using(_ + userId)
+          case UserPatch.RmSibling(userId)        => state.modify(_.siblings).using(_ - userId)
+          case UserPatch.AddPermission(userId, p) => state.modify(_.usrPermissions).using(_ + (userId -> p))
+        // println(s"${classOf[UserPatch.AddPermission].getSimpleName}($userId,$p)")
       }
 
   end UserPatch

@@ -49,11 +49,9 @@ object Patches2:
 
   end Mutation
 
-  // Describes targeted changes
-
-  /** Patch takes the role of events from Event sourcing. It contains the information of events but in a DSL that is
-    * targeted to make a structural changes to the [[UserState]]. Describes how we allow users to dive into different
-    * parts of the state and make changes.
+  /** The [[Patches2.Patch]] structure takes the role of events from Event sourcing. It contains the information of
+    * events but in a eDSL that is targeted to make a structural changes to the [[UserState]]. It describes how we allow
+    * users to dive into different parts of the state and make changes.
     */
   enum Patch[State](val tag: TypeTag):
     self =>
