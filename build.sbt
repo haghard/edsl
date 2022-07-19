@@ -9,7 +9,8 @@ lazy val scalac3Settings = Seq(
     "-feature",
     "-language:implicitConversions",
     "-unchecked",
-    "-Xfatal-warnings",
+    //"-Xfatal-warnings",
+
     //"-Yexplicit-nulls",
     //"-Wunused",
     "-Ykind-projector",
@@ -46,14 +47,17 @@ scalafmtOnCompile := true
 resolvers ++= Seq(Resolver.jcenterRepo, "Sonatype Public" at "https://oss.sonatype.org/content/groups/public/")
 
 libraryDependencies ++= Seq(
+  "com.softwaremill.quicklens" %% "quicklens"  % "1.8.8",
+
+  "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
 
   //Try this izumi.reflect.Tag
   //"dev.zio" %% "izumi-reflect" % "2.0.8",
 
   //https://mvnrepository.com/artifact/com.lihaoyi/ammonite_3.1.1
   //("com.lihaoyi" % "ammonite"  % "2.5.2"  % "test").cross(CrossVersion.full)
-  //("com.lihaoyi" %% "ammonite" % "2.5.1-7-cd989427" % "test").cross(CrossVersion.full)
-  // ("com.lihaoyi" % "ammonite"  % "2.5.0"  % "test").cross(CrossVersion.full) for scala 3.0.2
+  //("com.lihaoyi" % "ammonite"  % "2.5.4"  % "test").cross(CrossVersion.full)
+  //("com.lihaoyi" % "ammonite" % "2.5.4-2-71d100df" % "test").cross(CrossVersion.full)
 )
 
 //Compile / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused:imports", "-Yno-imports", "-deprecation")
@@ -62,13 +66,13 @@ promptTheme := ScalapenosTheme
 
 scalafmtOnCompile := true
 
-/*
+Compile / PB.targets := Seq(scalapb.gen() -> (Compile / sourceManaged).value)
+
 Test / sourceGenerators += Def.task {
   val file = (Test / sourceManaged).value / "amm.scala"
   IO.write(file, """object amm extends App { ammonite.Main().run() }""")
   Seq(file)
 }.taskValue
-*/
 
 
 addCommandAlias("c", "compile")

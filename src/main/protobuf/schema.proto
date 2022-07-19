@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+import "scalapb/scalapb.proto";
+
+package schema.v1;
+
+option (scalapb.options) = {
+    single_file: true
+    flat_package: true
+    preserve_unknown_fields: false
+    lenses: false
+};
+
+enum TypeTag {
+  SetUserIdTag=0;
+  AddSiblingTag=1;
+  RmSiblingPBTag=2;
+  AddPermissionTag=3;
+}
+
+message UserPatchPB {
+  TypeTag typeTag = 1;
+  bytes payload = 2;
+}
+
+
+//https://tudorzgureanu.com/define-topic-schema-for-kafka-using-protobuf-with-examples-in-scala/
+
+/*
+
+import "google/protobuf/any.proto";
+
+message UsersPatchEnvelope {
+  //google.protobuf.Any payload = 1;
+  UsersPatch patch = 1;
+}
+
+message UsersPatch {
+  oneof payload {
+    SetUserId set_userId = 1;
+    AddSibling add_sibling = 2;
+    RmSibling rm_sibling = 3;
+    AddPermission add_perm = 4;
+  }
+}
+
+message SetUserId {
+  string user_id = 1;
+}
+
+message AddSibling {
+  string user_id = 1;
+}
+
+message RmSibling {
+  string user_id = 1;
+}
+
+message AddPermission {
+  string user_id = 1;
+  string perm=2;
+}*/
