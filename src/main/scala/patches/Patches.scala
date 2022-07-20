@@ -24,7 +24,7 @@ object Patches:
 
     case SetUserId(userId: UsrId) extends UserPatch(userId, TypeTag.SetUserIdTag)
     case AddSibling(sibId: UsrId) extends UserPatch(sibId, TypeTag.AddPermissionTag)
-    case RmSibling(sibId: UsrId) extends UserPatch(sibId, TypeTag.RmSiblingPBTag)
+    case RmSibling(sibId: UsrId) extends UserPatch(sibId, TypeTag.RmSiblingTag)
     case AddPermission(userId: UsrId, permission: Permission)
         extends UserPatch((userId, permission), TypeTag.AddPermissionTag)
 
@@ -55,9 +55,9 @@ object Patches:
 
     def fromProto(p: UserPatchPB): UserPatch[?] =
       p.typeTag match
-        case TypeTag.SetUserIdTag   => SetUserId(readInt(p.payload.toByteArray))
-        case TypeTag.AddSiblingTag  => AddSibling(readInt(p.payload.toByteArray))
-        case TypeTag.RmSiblingPBTag => RmSibling(readInt(p.payload.toByteArray))
+        case TypeTag.SetUserIdTag  => SetUserId(readInt(p.payload.toByteArray))
+        case TypeTag.AddSiblingTag => AddSibling(readInt(p.payload.toByteArray))
+        case TypeTag.RmSiblingTag  => RmSibling(readInt(p.payload.toByteArray))
         case TypeTag.AddPermissionTag =>
           val bb = p.payload.asReadOnlyByteBuffer()
           val usr = bb.getInt

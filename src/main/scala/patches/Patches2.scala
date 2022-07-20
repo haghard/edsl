@@ -62,7 +62,7 @@ object Patches2:
 
     case SetUserId(userId: UsrId) extends Patch[State](TypeTag.SetUserIdTag)
     case AddSiblingId(sibId: UsrId) extends Patch[State](TypeTag.AddSiblingTag)
-    case RemoveSiblingId(sibId: UsrId) extends Patch[State](TypeTag.RmSiblingPBTag)
+    case RemoveSiblingId(sibId: UsrId) extends Patch[State](TypeTag.RmSiblingTag)
     case AddUserPermission(userId: UsrId, permission: Permission) extends Patch[State](TypeTag.AddPermissionTag)
 
   end Patch
@@ -114,9 +114,9 @@ object Patches2:
 
     def deserialize(pb: UserPatchPB): Patch[?] =
       pb.typeTag match
-        case TypeTag.SetUserIdTag   => SetUserId(readLong(pb.payload.toByteArray))
-        case TypeTag.AddSiblingTag  => AddSiblingId(readLong(pb.payload.toByteArray))
-        case TypeTag.RmSiblingPBTag => RemoveSiblingId(readLong(pb.payload.toByteArray))
+        case TypeTag.SetUserIdTag  => SetUserId(readLong(pb.payload.toByteArray))
+        case TypeTag.AddSiblingTag => AddSiblingId(readLong(pb.payload.toByteArray))
+        case TypeTag.RmSiblingTag  => RemoveSiblingId(readLong(pb.payload.toByteArray))
         case TypeTag.AddPermissionTag =>
           val bb = pb.payload.asReadOnlyByteBuffer()
           val usr = bb.getLong
