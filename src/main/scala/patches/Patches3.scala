@@ -10,7 +10,26 @@ import schema.v1.{ TypeTag, UserPatchPB }
 
 object Patches3:
 
-  opaque type UsrId <: Long = Long
+  opaque type UsrId /*<: Long*/ = Long
+
+  object UsrId:
+    def apply(n: Long): UsrId = n
+    extension (u: UsrId)
+      def toBts(): Array[Byte] =
+        val array = Array.ofDim[Byte](8)
+        array(0) = (u >>> 56).toByte
+        array(1) = (u >>> 48).toByte
+        array(2) = (u >>> 40).toByte
+        array(3) = (u >>> 32).toByte
+        array(4) = (u >>> 24).toByte
+        array(5) = (u >>> 16).toByte
+        array(6) = (u >>> 8).toByte
+        array(7) = u.toByte
+        array
+
+  end UsrId
+  import patches.Patches3.UsrId.toBts
+
   opaque type Permission <: String = String
 
   trait Codec[T <: TypeTag]:
@@ -18,20 +37,7 @@ object Patches3:
     def fromProto(pb: UserPatchPB): Patch[T]
 
   object Codec:
-
-    def writeLong(i: Long): Array[Byte] =
-      val array = Array.ofDim[Byte](8)
-      array(0) = (i >>> 56).toByte
-      array(1) = (i >>> 48).toByte
-      array(2) = (i >>> 40).toByte
-      array(3) = (i >>> 32).toByte
-      array(4) = (i >>> 24).toByte
-      array(5) = (i >>> 16).toByte
-      array(6) = (i >>> 8).toByte
-      array(7) = i.toByte
-      array
-
-    def readLong(bytes: Array[Byte]): Long =
+    def fromBts(bytes: Array[Byte]): UsrId =
       (bytes(0) & 0xffL) << 56 |
         (bytes(1) & 0xffL) << 48 |
         (bytes(2) & 0xffL) << 40 |
@@ -45,11 +51,11 @@ object Patches3:
       def toProto(p: Patch[TypeTag.SetUserIdTag.type]): UserPatchPB =
         p.asMatchable match
           case Patch.SetUserId(userId) =>
-            UserPatchPB(TypeTag.SetUserIdTag, com.google.protobuf.UnsafeByteOperations.unsafeWrap(writeLong(userId)))
+            UserPatchPB(TypeTag.SetUserIdTag, com.google.protobuf.UnsafeByteOperations.unsafeWrap(userId.toBts()))
           case _ => throw new Exception("Boom!")
 
       def fromProto(pb: UserPatchPB): Patch.SetUserId =
-        Patch.SetUserId(readLong(pb.payload.toByteArray))
+        Patch.SetUserId(fromBts(pb.payload.toByteArray))
 
     given b: Codec[TypeTag.AddSiblingTag.type] with
       def toProto(p: Patch[TypeTag.AddSiblingTag.type]): UserPatchPB = ???
