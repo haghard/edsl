@@ -7,6 +7,7 @@ import com.softwaremill.quicklens.*
 import compiletime.asMatchable
 import scala.reflect.ClassTag
 import schema.v1.{ TypeTag, UserPatchPB }
+import Patches3.UsrId.toBts
 
 object Patches3:
 
@@ -28,7 +29,6 @@ object Patches3:
         array
 
   end UsrId
-  import patches.Patches3.UsrId.toBts
 
   opaque type Permission <: String = String
 

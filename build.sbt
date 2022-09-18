@@ -47,8 +47,7 @@ lazy val commonSettings = scalac3Settings ++ Seq(
 resolvers ++= Seq(Resolver.jcenterRepo, "Sonatype Public" at "https://oss.sonatype.org/content/groups/public/")
 
 libraryDependencies ++= Seq(
-  "com.softwaremill.quicklens" %% "quicklens"  % "1.8.8",
-
+  "com.softwaremill.quicklens" %% "quicklens" % "1.8.10",
   "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
 
   //Try this izumi.reflect.Tag
