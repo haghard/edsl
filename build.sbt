@@ -32,7 +32,7 @@ lazy val commonSettings = scalac3Settings ++ Seq(
 
   //sbt headerCreate
   licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
-  scalaVersion := "3.1.3",
+  scalaVersion := "3.2.0",
   headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
   headerLicense  := Some(HeaderLicense.Custom(
     """|Copyright (c) 2021-22 by Vadim Bondarev
@@ -42,7 +42,7 @@ lazy val commonSettings = scalac3Settings ++ Seq(
   ))
 )
 
-scalafmtOnCompile := true
+//scalafmtOnCompile := true
 
 resolvers ++= Seq(Resolver.jcenterRepo, "Sonatype Public" at "https://oss.sonatype.org/content/groups/public/")
 
