@@ -54,7 +54,7 @@ object Coercion:
 /** DslElement is an example of GADT.
   *
   * A GADT is a very specific example of a parametrically polymorphic ADT where you are allowed to specialize a type
-  * parameter A in terms of the sum type. Specialization of the type A of DslElement inside the children together with
+  * parameter A in terms of a sum type. Specialization of the type A of DslElement inside the children together with
   * being able to reconstruct this information in pattern matching is known as GADTs.
   */
 enum DslElement[A]:

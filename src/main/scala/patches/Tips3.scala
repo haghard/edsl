@@ -8,9 +8,9 @@ object Tips3:
 
   import quoted.*
 
-  case class A(name: String, arg: Int)
-  case class B(name: String, arg: Double)
-  case class C(name: String, arg: Char)
+  final case class A(name: String, arg: Int)
+  final case class B(name: String, arg: Double)
+  final case class C(name: String, arg: Char)
 
   trait Trm[A]:
     type T
