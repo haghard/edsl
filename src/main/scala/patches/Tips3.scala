@@ -4,7 +4,6 @@ package patches
 //https://slides.com/olegnizhnik/scala-3#/5/3/0
 //https://slides.com/olegnizhnik/profdata#/3/6
 
-
 //https://yadukrishnan.live/compile-time-error-generation-using-inline-in-scala-3
 object InlineCompilerError:
 
@@ -13,9 +12,9 @@ object InlineCompilerError:
 
   inline def checkVersion(inline versionNo: String) =
     inline if (!constValue[Matches[versionNo.type, "[\\d]+\\.[\\d]+[\\.\\d]*"]])
-      error("Invalid semantic version number format. Value of versionNo provided is "+codeOf(versionNo))
+      error("Invalid semantic version number format. Value of versionNo provided is " + codeOf(versionNo))
     else
-      //nothing to do here
+      // nothing to do here
       println(s"Correct version information")
 
   checkVersion("1.2.0.6")
@@ -85,8 +84,7 @@ object Terms:
 
   term("name").eq$("aa")
   term("name").notEq$("aa")
-  term("age").in$(Set(1,2))
-
+  term("age").in$(Set(1, 2))
 
 end Terms
 
