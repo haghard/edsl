@@ -186,7 +186,7 @@ object Patches3:
 
   end Patch
 
-  case class State(
+  final case class State(
       id: UsrId = -1L, // a primitive type
       siblings: Set[UsrId] = immutable.Set.empty, // Set
       usrPermissions: Map[UsrId, Permission] = immutable.Map.empty):

@@ -4,6 +4,92 @@ package patches
 //https://slides.com/olegnizhnik/scala-3#/5/3/0
 //https://slides.com/olegnizhnik/profdata#/3/6
 
+
+//https://yadukrishnan.live/compile-time-error-generation-using-inline-in-scala-3
+object InlineCompilerError:
+
+  import scala.compiletime.*
+  import ops.string.*
+
+  inline def checkVersion(inline versionNo: String) =
+    inline if (!constValue[Matches[versionNo.type, "[\\d]+\\.[\\d]+[\\.\\d]*"]])
+      error("Invalid semantic version number format. Value of versionNo provided is "+codeOf(versionNo))
+    else
+      //nothing to do here
+      println(s"Correct version information")
+
+  checkVersion("1.2.0.6")
+
+//Type-level parser
+//
+object Parser:
+  // Compile-time operations
+  import scala.compiletime.ops.int.+
+  import scala.compiletime.ops.string.{ CharAt, Length, Substring, Matches } // try Matches
+
+  // parameter untupling,
+  type Args[S <: String] <: Tuple = S match
+    case "" => EmptyTuple
+    case _ =>
+      CharAt[S, 0] match
+        case '%' =>
+          CharAt[S, 1] match
+            case 'd' => Int *: Args[Substring[S, 2, Length[S]]]
+            case 's' => String *: Args[Substring[S, 2, Length[S]]]
+        case _ => Args[Substring[S, 1, Length[S]]]
+
+  def parse(str: String)(args: Args[str.type]): Unit =
+    val list = args.toList
+    println(s"${list(0)} is ${list(1)}")
+
+  parse("%s is %d")("Adam Bell", 45)
+
+  summon[Args["%s is %d"] =:= (String, Int)]
+
+end Parser
+
+object Terms:
+
+  sealed trait TermOps[T]
+  object Empty extends TermOps[Nothing]
+
+  trait FilterableOps[T] extends TermOps[T]:
+    def eq$(v: T): Unit
+    def notEq$(v: T): Unit
+
+  trait SetOps[T] extends TermOps[T]:
+    def in$(vs: Set[T]): Unit
+
+  trait TypedTermOps[T <: String & Singleton]:
+    type A
+    type Term <: TermOps[A]
+    def ops: Term
+
+  object TypedTermOps:
+
+    given name: TypedTermOps["name"] with
+      type A = String
+      type Term = FilterableOps[A]
+      def ops: Term = new FilterableOps[A]:
+        def eq$(v: A): Unit = println(s"$v eq")
+        def notEq$(v: A): Unit = println(s"$v notEq")
+
+    given age: TypedTermOps["age"] with
+      type A = Int
+      type Term = SetOps[Int]
+      def ops: Term = (vs: Set[Int]) => println(s"$vs in")
+
+  end TypedTermOps
+
+  def term(name: String)(using TTC: TypedTermOps[name.type]): TTC.Term = TTC.ops
+
+  term("name").eq$("aa")
+  term("name").notEq$("aa")
+  term("age").in$(Set(1,2))
+
+
+end Terms
+
 object Tips3:
 
   import quoted.*

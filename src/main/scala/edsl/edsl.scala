@@ -131,7 +131,7 @@ enum DslElement[A]:
       right: DslElement[A],
       N: NumTag[A]) extends DslElement[Boolean]
 
-  case Cond(
+  case IfThenElse(
       cond: DslElement[Boolean],
       ifTrue: DslElement[A],
       ifFalse: DslElement[A]) extends DslElement[A]
@@ -142,7 +142,7 @@ object DslElement:
       when: DslElement[Boolean],
       ifTrue: DslElement[A],
       ifFalse: DslElement[A],
-    ): DslElement[A] = Cond(when, ifTrue, ifFalse)
+    ): DslElement[A] = IfThenElse(when, ifTrue, ifFalse)
 
   def serialize[T](v: DslElement[T]): String =
     v match
@@ -181,7 +181,7 @@ object DslElement:
       case DslElement.LesserOrEq(left, right, _) =>
         s"<=|${serialize(left)}|${serialize(right)}"
 
-      case DslElement.Cond(cond, ifTrue, ifFalse) =>
+      case DslElement.IfThenElse(cond, ifTrue, ifFalse) =>
         s"if(${serialize(cond)}) ${serialize(ifTrue)} else ${serialize(ifFalse)}"
 
   def deserialize(expr: String): DslElement[?] = ???
@@ -244,7 +244,7 @@ object DslElement:
           case NumTag.Dbl     => eval(op.left) >= eval(op.right)
           case NumTag.Lng     => eval(op.left) >= eval(op.right)
 
-      case DslElement.Cond(cond, ifTrue, ifFalse) =>
+      case DslElement.IfThenElse(cond, ifTrue, ifFalse) =>
         if (eval(cond)) eval(ifTrue) else eval(ifFalse)
 
 extension [A: NumTag](v: A)
