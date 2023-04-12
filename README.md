@@ -10,6 +10,9 @@ https://dotty.epfl.ch/docs/reference/contextual/relationship-implicits.html
 https://blog.rockthejvm.com/givens-and-implicits/
 
 
+### See this 
+https://github.com/zio/zio-constraintless/blob/master/examples/shared/src/main/scala/zio/constraintless/examples/Expr.scala
+
 
 ## License
 

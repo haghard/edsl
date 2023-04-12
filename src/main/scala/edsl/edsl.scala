@@ -294,3 +294,6 @@ object Program:
       println(eval(exp3))
 
     catch { case NonFatal(ex) => ex.printStackTrace }
+
+//See this
+//https://github.com/zio/zio-constraintless/blob/master/examples/shared/src/main/scala/zio/constraintless/examples/Expr.scala

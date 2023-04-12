@@ -17,6 +17,7 @@ object Patches3:
     def apply(n: Long): UsrId = n
     extension (u: UsrId)
       def toBts(): Array[Byte] =
+        //Guava Longs
         val array = Array.ofDim[Byte](8)
         array(0) = (u >>> 56).toByte
         array(1) = (u >>> 48).toByte
