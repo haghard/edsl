@@ -1,3 +1,7 @@
+// Copyright (c) 2021-23 by Vadim Bondarev
+// This software is licensed under the Apache License, Version 2.0.
+// You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+
 package patches
 
 //https://mhammons.hashnode.dev/containers
@@ -8,13 +12,13 @@ package patches
 object InlineCompilerError:
 
   import scala.compiletime.*
+  import scala.compiletime.ops.string.*
   import ops.string.*
 
-  inline def checkVersion(inline versionNo: String) =
+  inline def checkVersion(versionNo: String) =
     inline if (!constValue[Matches[versionNo.type, "[\\d]+\\.[\\d]+[\\.\\d]*"]])
       error("Invalid semantic version number format. Value of versionNo provided is " + codeOf(versionNo))
     else
-      // nothing to do here
       println(s"Correct version information")
 
   checkVersion("1.2.0.6")

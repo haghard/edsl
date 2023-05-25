@@ -32,10 +32,10 @@ lazy val commonSettings = scalac3Settings ++ Seq(
 
   //sbt headerCreate
   licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
-  scalaVersion := "3.2.2",
+  scalaVersion := "3.3.0",
   headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
   headerLicense  := Some(HeaderLicense.Custom(
-    """|Copyright (c) 2021-22 by Vadim Bondarev
+    """|Copyright (c) 2021-23 by Vadim Bondarev
        |This software is licensed under the Apache License, Version 2.0.
        |You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
        |""".stripMargin

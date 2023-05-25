@@ -1,3 +1,7 @@
+// Copyright (c) 2021-23 by Vadim Bondarev
+// This software is licensed under the Apache License, Version 2.0.
+// You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+
 package patches
 
 import scala.collection.immutable
@@ -17,7 +21,7 @@ object Patches3:
     def apply(n: Long): UsrId = n
     extension (u: UsrId)
       def toBts(): Array[Byte] =
-        //Guava Longs
+        // Guava Longs
         val array = Array.ofDim[Byte](8)
         array(0) = (u >>> 56).toByte
         array(1) = (u >>> 48).toByte

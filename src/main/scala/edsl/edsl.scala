@@ -1,4 +1,4 @@
-// Copyright (c) 2021-22 by Vadim Bondarev
+// Copyright (c) 2021-23 by Vadim Bondarev
 // This software is licensed under the Apache License, Version 2.0.
 // You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
 
@@ -295,5 +295,8 @@ object Program:
 
     catch { case NonFatal(ex) => ex.printStackTrace }
 
-//See this
-//https://github.com/zio/zio-constraintless/blob/master/examples/shared/src/main/scala/zio/constraintless/examples/Expr.scala
+/*
+Also see this Constraintless
+https://youtu.be/jtxO7LJXW0Q?list=LL
+https://github.com/zio/zio-constraintless/blob/master/examples/shared/src/main/scala/zio/constraintless/examples/Expr.scala
+ */
