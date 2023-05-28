@@ -49,6 +49,8 @@ resolvers ++= Seq(Resolver.jcenterRepo, "Sonatype Public" at "https://oss.sonaty
 libraryDependencies ++= Seq(
   "com.softwaremill.quicklens" %% "quicklens" % "1.8.10",
   "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
+  
+  "dev.zio" %% "zio-constraintless" % "0.3.2",
 
   //Try this izumi.reflect.Tag
   //"dev.zio" %% "izumi-reflect" % "2.0.8",

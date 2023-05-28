@@ -128,11 +128,10 @@ object TypedExp:
 // This is useful when we need two expressions to be of the same type: Unify.apply will either fail,
 // or return something that'll allow the compiler to infer that both the lhs and rhs are of the same type.
 enum Unify:
-  case Success[
-      A
-    ](
-      lhs: Exp[A], rhs: Exp[A], tpe: Type[A],
-    )
+  case Success[A](
+      lhs: Exp[A],
+      rhs: Exp[A],
+      tpe: Type[A])
   case Failure(error: String)
 
 object Unify:
