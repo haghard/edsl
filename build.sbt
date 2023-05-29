@@ -42,23 +42,18 @@ lazy val commonSettings = scalac3Settings ++ Seq(
   ))
 )
 
-//scalafmtOnCompile := true
+scalafmtOnCompile := true
 
 resolvers ++= Seq(Resolver.jcenterRepo, "Sonatype Public" at "https://oss.sonatype.org/content/groups/public/")
 
+val AmmoniteVersion = "2.5.8"
 libraryDependencies ++= Seq(
   "com.softwaremill.quicklens" %% "quicklens" % "1.8.10",
   "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
-  
+
   "dev.zio" %% "zio-constraintless" % "0.3.2",
 
-  //Try this izumi.reflect.Tag
-  //"dev.zio" %% "izumi-reflect" % "2.0.8",
-
-  //https://mvnrepository.com/artifact/com.lihaoyi/ammonite_3.1.1
-  //("com.lihaoyi" % "ammonite"  % "2.5.2"  % "test").cross(CrossVersion.full)
-  //("com.lihaoyi" % "ammonite"  % "2.5.4"  % "test").cross(CrossVersion.full)
-  //("com.lihaoyi" % "ammonite" % "2.5.4-2-71d100df" % "test").cross(CrossVersion.full)
+  //"com.lihaoyi" % "ammonite" % AmmoniteVersion % "test" cross CrossVersion.full
 )
 
 //Compile / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused:imports", "-Yno-imports", "-deprecation")
