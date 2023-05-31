@@ -78,8 +78,11 @@ enum Expr[TList <: TypeList, A]:
       rhs: Expr[TList, A],
       ev: A `IsElementOf` TList) extends Expr[TList, A]
 
-  def zip[B](expr: Expr[TList, B])(using evB: B `IsElementOf` TList): Expr[TList, (A, B)] =
-    Prod(self, expr, evB)
+  def <>[B](expr: Expr[TList, B])(using ev: B `IsElementOf` TList): Expr[TList, (A, B)] =
+    Prod(self, expr, ev)
+
+  infix def zip[B](expr: Expr[TList, B])(using ev: B `IsElementOf` TList): Expr[TList, (A, B)] =
+    <>(expr)
 
 object Expr:
 
@@ -126,13 +129,13 @@ object Program:
     println(res)
 
     type RecordA = Expr[DslTypes, (Double, Int)]
-    val a: RecordA = 1.4.lit `zip` 1.lit
-    val b: RecordA = 1.3.lit `zip` 4.lit
+    val a: RecordA = 1.4.lit <> 1.lit
+    val b: RecordA = 1.3.lit <> 4.lit
     println(eval(a + b))
 
     type Record = Expr[DslTypes, ((Double, Int), Int)]
-    val c: Record = 1.4.lit `zip` 1.lit `zip` 8.lit
-    val d: Record = 1.3.lit `zip` 2.lit `zip` 5.lit
+    val c: Record = 1.4.lit <> 1.lit <> 8.lit
+    val d: Record = 1.3.lit zip 2.lit zip 5.lit
 
     println(eval(c + d))
     println(eval(c - d))
