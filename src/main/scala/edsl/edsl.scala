@@ -262,7 +262,6 @@ extension (v: String)
 
 object Program:
 
-  import NumTag.*
   import DslElement.*
 
   def apply(): Unit =

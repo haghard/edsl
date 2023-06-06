@@ -112,7 +112,11 @@ end Expr
 extension [A: Num, TList <: TypeList](v: A)
   inline def lit(using n: Num[A], ev: A `IsElementOf` TList): Expr[TList, A] = Expr.Value(v, ev)
 
-//runMain edsl4.app
+/** By deferring the resolution of type class instances until interpretation, ZIO Constraintless offers unparalleled
+  * flexibility and modularity, empowering developers to customize DSLs while upholding type safety.
+  *
+  * runMain edsl4.app
+  */
 @main def app(): Unit = Program()
 
 object Program:

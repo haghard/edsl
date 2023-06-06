@@ -15,6 +15,8 @@ lazy val scalac3Settings = Seq(
     //"-Wunused",
     "-Ykind-projector",
     "-Ysafe-init", //guards against forward access reference
+    "-Wunused:all",
+    //"-Xfatal-warnings"
   ) ++ Seq("-rewrite", "-indent") ++ Seq("-source", "future-migration")
 )
 
@@ -32,7 +34,11 @@ lazy val commonSettings = scalac3Settings ++ Seq(
 
   //sbt headerCreate
   licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
-  scalaVersion := "3.3.0",
+
+  //https://scala-lang.org/blog/2023/05/30/scala-3.3.0-released.html
+
+  //scalaVersion := "3.3.0",
+  scalaVersion := "3.3.1-RC1",
   headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
   headerLicense  := Some(HeaderLicense.Custom(
     """|Copyright (c) 2021-23 by Vadim Bondarev
