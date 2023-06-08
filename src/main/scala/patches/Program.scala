@@ -5,10 +5,10 @@
 package patches
 
 //runMain patches.Main("")
-object Program:
+object Program {
 
   // def main(args: Array[String]) =
-  @main def Main(args: String*): Unit =
+  @main def Main(args: String*): Unit = {
     // val list: List[Ops[Show]] = List(Ops[Show](A("a")), Ops[Show](B("b")))
     // println(list.map(_.use(_.show)))
 
@@ -20,5 +20,7 @@ object Program:
 
     val boolVal = false
     println(CNF("(0v1)^(2v-3)", true, false, boolVal, false)) // (true || false) && (boolVal || !false)
+  }
+}
 
-  end Main
+// end Main

@@ -8,48 +8,59 @@ import scala.util.control.NonFatal
 
 /** Constraints a number of ways to build `NumTag` (only 3 ways)
   */
-trait NumTag[T]:
+trait NumTag[T] {
   def code: Byte
+}
 
-object NumTag:
+object NumTag {
 
-  given Integer: NumTag[Int] with
+  given Integer: NumTag[Int] with {
     val code: Byte = 0x00
     override val toString = "i"
+  }
 
-  given Dbl: NumTag[Double] with
+  given Dbl: NumTag[Double] with {
     val code: Byte = 0x01
     override val toString = "d"
+  }
 
-  given Lng: NumTag[Long] with
+  given Lng: NumTag[Long] with {
     val code: Byte = 0x02
     override val toString = "l"
+  }
+}
 
-end NumTag
+// end NumTag
 
-trait Coercion[In, Out]:
+trait Coercion[In, Out] {
   def from: NumTag[In]
   def to: NumTag[Out]
+}
 
-object Coercion:
+object Coercion {
 
   def convert[A, B](from: NumTag[A], to: NumTag[B]): A => B =
-    (from, to) match
+    (from, to) match {
       case (NumTag.Integer, NumTag.Dbl) => (in: Int) => in.toDouble
       case (NumTag.Dbl, NumTag.Integer) => (in: Double) => in.toInt
       case (NumTag.Integer, NumTag.Lng) => (in: Int) => in.toLong
+    }
 
-  given IntToDouble: Coercion[Int, Double] with
+  given IntToDouble: Coercion[Int, Double] with {
     def from = NumTag.Integer
     def to = NumTag.Dbl
+  }
 
-  given DoubleToInt: Coercion[Double, Int] with
+  given DoubleToInt: Coercion[Double, Int] with {
     def from = NumTag.Dbl
     def to = NumTag.Integer
+  }
 
-  given IntToLong: Coercion[Int, Long] with
+  given IntToLong: Coercion[Int, Long] with {
     def from = NumTag.Integer
     def to = NumTag.Lng
+  }
+}
 
 /** DslElement is an example of GADT.
   *
@@ -57,7 +68,7 @@ object Coercion:
   * parameter A in terms of a sum type. Specialization of the type A of DslElement inside the children together with
   * being able to reconstruct this information in pattern matching is known as GADTs.
   */
-enum DslElement[A]:
+enum DslElement[A] {
   self =>
 
   def +(that: DslElement[A])(using N: NumTag[A]): DslElement[A] =
@@ -135,8 +146,9 @@ enum DslElement[A]:
       cond: DslElement[Boolean],
       ifTrue: DslElement[A],
       ifFalse: DslElement[A]) extends DslElement[A]
+}
 
-object DslElement:
+object DslElement {
 
   def If[A](
       when: DslElement[Boolean],
@@ -145,7 +157,7 @@ object DslElement:
     ): DslElement[A] = IfThenElse(when, ifTrue, ifFalse)
 
   def serialize[T](v: DslElement[T]): String =
-    v match
+    v match {
       case DslElement.Plus(a, b, _) =>
         s"+|${serialize(a)}|${serialize(b)}"
 
@@ -183,34 +195,39 @@ object DslElement:
 
       case DslElement.IfThenElse(cond, ifTrue, ifFalse) =>
         s"if(${serialize(cond)}) ${serialize(ifTrue)} else ${serialize(ifFalse)}"
+    }
 
   def deserialize(expr: String): DslElement[?] = ???
 
   def eval[T](v: DslElement[T]): T =
-    v match
+    v match {
       case op: DslElement.Plus[T] =>
-        op.N match
+        op.N match {
           case NumTag.Integer => eval(op.a) + eval(op.b)
           case NumTag.Dbl     => eval(op.a) + eval(op.b)
           case NumTag.Lng     => eval(op.a) + eval(op.b)
+        }
 
       case op: DslElement.Minus[T] =>
-        op.N match
+        op.N match {
           case NumTag.Integer => eval(op.a) - eval(op.b)
           case NumTag.Dbl     => eval(op.a) - eval(op.b)
           case NumTag.Lng     => eval(op.a) - eval(op.b)
+        }
 
       case op: DslElement.Multiply[T] =>
-        op.N match
+        op.N match {
           case NumTag.Integer => eval(op.a) * eval(op.b)
           case NumTag.Dbl     => eval(op.a) * eval(op.b)
           case NumTag.Lng     => eval(op.a) * eval(op.b)
+        }
 
       case op: DslElement.Negate[T] =>
-        op.N match
+        op.N match {
           case NumTag.Integer => -eval(op.v)
           case NumTag.Dbl     => -eval(op.v)
           case NumTag.Lng     => -eval(op.v)
+        }
 
       case op: DslElement.Val[T] => op.v
 
@@ -221,51 +238,60 @@ object DslElement:
         eval(op.left) == eval(op.right)
 
       case op: DslElement.LesserThan[in] =>
-        op.N match
+        op.N match {
           case NumTag.Integer => eval(op.left) < eval(op.right)
           case NumTag.Dbl     => eval(op.left) < eval(op.right)
           case NumTag.Lng     => eval(op.left) < eval(op.right)
+        }
 
       case op: DslElement.LesserOrEq[in] =>
-        op.N match
+        op.N match {
           case NumTag.Integer => eval(op.left) <= eval(op.right)
           case NumTag.Dbl     => eval(op.left) <= eval(op.right)
           case NumTag.Lng     => eval(op.left) <= eval(op.right)
+        }
 
       case op: DslElement.GreaterThan[in] =>
-        op.N match
+        op.N match {
           case NumTag.Integer => eval(op.left) > eval(op.right)
           case NumTag.Dbl     => eval(op.left) > eval(op.right)
           case NumTag.Lng     => eval(op.left) > eval(op.right)
+        }
 
       case op: DslElement.GreaterOrEq[in] =>
-        op.N match
+        op.N match {
           case NumTag.Integer => eval(op.left) >= eval(op.right)
           case NumTag.Dbl     => eval(op.left) >= eval(op.right)
           case NumTag.Lng     => eval(op.left) >= eval(op.right)
+        }
 
       case DslElement.IfThenElse(cond, ifTrue, ifFalse) =>
         if (eval(cond)) eval(ifTrue) else eval(ifFalse)
+    }
+}
 
-extension [A: NumTag](v: A)
+extension [A: NumTag](v: A) {
   inline def lit(using tag: NumTag[A]): DslElement[A] =
     DslElement.Val(v, tag)
+}
 
-extension (v: String)
+extension (v: String) {
   def parse[A: NumTag](using tag: NumTag[A]): DslElement[A] =
-    tag match
+    tag match {
       case NumTag.Integer => DslElement.Val(v.toInt, tag)
       case NumTag.Dbl     => DslElement.Val(v.toDouble, tag)
       case NumTag.Lng     => DslElement.Val(v.toLong, tag)
+    }
+}
 
 @main def app(): Unit = Program()
 
-object Program:
+object Program {
 
   import DslElement.*
 
   def apply(): Unit =
-    try
+    try {
       val exp0 = 1.lit + 5.lit * 10.6.lit.as[Int]
       val exp1 = 1.67.lit * 10.lit.as[Double] + 89.lit.as[Double]
       val exp2 = "1.67".parse[Double] + 10.lit.as[Double]
@@ -291,5 +317,7 @@ object Program:
 
       println(serialize(exp3))
       println(eval(exp3))
+    }
 
     catch { case NonFatal(ex) => ex.printStackTrace }
+}

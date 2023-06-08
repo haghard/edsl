@@ -13,14 +13,14 @@ import scala.reflect.ClassTag
 import schema.v1.{ TypeTag, UserPatchPB }
 import Patches3.UsrId.toBts
 
-object Patches3:
+object Patches3 {
 
   opaque type UsrId /*<: Long*/ = Long
 
-  object UsrId:
+  object UsrId {
     def apply(n: Long): UsrId = n
-    extension (u: UsrId)
-      def toBts(): Array[Byte] =
+    extension (u: UsrId) {
+      def toBts(): Array[Byte] = {
         // Guava Longs
         val array = Array.ofDim[Byte](8)
         array(0) = (u >>> 56).toByte
@@ -32,16 +32,20 @@ object Patches3:
         array(6) = (u >>> 8).toByte
         array(7) = u.toByte
         array
+      }
+    }
+  }
 
-  end UsrId
+  // end UsrId
 
   opaque type Permission <: String = String
 
-  trait Codec[T <: TypeTag]:
+  trait Codec[T <: TypeTag] {
     def toProto(p: Patch[T]): UserPatchPB
     def fromProto(pb: UserPatchPB): Patch[T]
+  }
 
-  object Codec:
+  object Codec {
     def fromBts(bytes: Array[Byte]): UsrId =
       (bytes(0) & 0xffL) << 56 |
         (bytes(1) & 0xffL) << 48 |
@@ -52,57 +56,69 @@ object Patches3:
         (bytes(6) & 0xffL) << 8 |
         (bytes(7) & 0xffL)
 
-    given a: Codec[TypeTag.SetUserIdTag.type] with
+    given a: Codec[TypeTag.SetUserIdTag.type] with {
       def toProto(p: Patch[TypeTag.SetUserIdTag.type]): UserPatchPB =
-        p.asMatchable match
+        p.asMatchable match {
           case Patch.SetUserId(userId) =>
             UserPatchPB(TypeTag.SetUserIdTag, com.google.protobuf.UnsafeByteOperations.unsafeWrap(userId.toBts()))
           case _ => throw new Exception("Boom!")
+        }
 
       def fromProto(pb: UserPatchPB): Patch.SetUserId =
         Patch.SetUserId(fromBts(pb.payload.toByteArray))
+    }
 
-    given b: Codec[TypeTag.AddSiblingTag.type] with
+    given b: Codec[TypeTag.AddSiblingTag.type] with {
       def toProto(p: Patch[TypeTag.AddSiblingTag.type]): UserPatchPB = ???
       def fromProto(pb: UserPatchPB): Patch[TypeTag.AddSiblingTag.type] = ???
+    }
 
-    given c: Codec[TypeTag.RmSiblingTag.type] with
+    given c: Codec[TypeTag.RmSiblingTag.type] with {
       def toProto(p: Patch[TypeTag.RmSiblingTag.type]): UserPatchPB = ???
       def fromProto(pb: UserPatchPB): Patch[TypeTag.RmSiblingTag.type] = ???
+    }
 
-    given d: Codec[TypeTag.AddPermissionTag.type] with
+    given d: Codec[TypeTag.AddPermissionTag.type] with {
       def toProto(p: Patch[TypeTag.AddPermissionTag.type]): UserPatchPB = ???
       def fromProto(pb: UserPatchPB): Patch[TypeTag.AddPermissionTag.type] = ???
+    }
+  }
 
-  end Codec
+  // end Codec
 
   // trait Mut[T <: TypeTag & Singleton]:
-  trait Mut[T <: TypeTag]:
+  trait Mut[T <: TypeTag] {
     type In
     def update(state: State, userId: In): State
+  }
 
-  object Mut:
-    given a: Mut[TypeTag.SetUserIdTag.type] with
+  object Mut {
+    given a: Mut[TypeTag.SetUserIdTag.type] with {
       type In = UsrId
       def update(state: State, userId: In): State =
         state.modify(_.id).setTo(userId)
+    }
 
-    given b: Mut[TypeTag.AddSiblingTag.type] with
+    given b: Mut[TypeTag.AddSiblingTag.type] with {
       type In = UsrId
       def update(state: State, sid: In): State =
         state.modify(_.siblings).using(_ + sid)
+    }
 
-    given c: Mut[TypeTag.RmSiblingTag.type] with
+    given c: Mut[TypeTag.RmSiblingTag.type] with {
       type In = UsrId
       def update(state: State, sid: In): State =
         state.modify(_.siblings).using(_ + sid)
+    }
 
-    given d: Mut[TypeTag.AddPermissionTag.type] with
+    given d: Mut[TypeTag.AddPermissionTag.type] with {
       type In = (UsrId, Permission)
       def update(state: State, args: In): State =
         state.modify(_.usrPermissions).using(_ + args)
+    }
+  }
 
-  end Mut
+  // end Mut
 
   /*
   trait Mut0[T <: TypeTag]:
@@ -136,17 +152,18 @@ object Patches3:
   end Mut0
    */
 
-  enum Patch[T <: TypeTag]:
+  enum Patch[T <: TypeTag] {
     self =>
 
     case SetUserId(userId: UsrId) extends Patch[TypeTag.SetUserIdTag.type]
     case AddSibling(sibId: UsrId) extends Patch[TypeTag.AddSiblingTag.type]
     case RmSibling(sibId: UsrId) extends Patch[TypeTag.RmSiblingTag.type]
     case AddPermission(userId: UsrId, ps: Permission) extends Patch[TypeTag.AddPermissionTag.type]
+  }
 
-  end Patch
+  // end Patch
 
-  object Patch:
+  object Patch {
 
     // constructors
     def setUserId(userId: UsrId) = SetUserId(userId)
@@ -157,12 +174,13 @@ object Patches3:
     def serialize[T <: TypeTag](p: Patch[T])(using C: Codec[T]): UserPatchPB = C.toProto(p)
 
     def deserialize(pb: UserPatchPB) =
-      pb.typeTag match
+      pb.typeTag match {
         case TypeTag.SetUserIdTag     => summon[Codec[TypeTag.SetUserIdTag.type]].fromProto(pb)
         case TypeTag.AddSiblingTag    => summon[Codec[TypeTag.AddSiblingTag.type]].fromProto(pb)
         case TypeTag.RmSiblingTag     => summon[Codec[TypeTag.RmSiblingTag.type]].fromProto(pb)
         case TypeTag.AddPermissionTag => summon[Codec[TypeTag.AddPermissionTag.type]].fromProto(pb)
         case TypeTag.Unrecognized(v)  => throw new Exception(s"Unrecognized($v) value !!!")
+      }
 
     private def mut[T <: TypeTag](
         tag: T,
@@ -173,14 +191,16 @@ object Patches3:
 
     // This interpreter is correct by construction.
     def eval[T <: TypeTag](state: State, p: Patch[T]): State =
-      p match
+      p match {
         case Patch.SetUserId(userId)       => mut(TypeTag.SetUserIdTag, state)(userId)
         case Patch.AddSibling(sid)         => mut(TypeTag.AddSiblingTag, state)(sid)
         case Patch.RmSibling(sid)          => mut(TypeTag.RmSiblingTag, state)(sid)
         case Patch.AddPermission(user, ps) => mut(TypeTag.AddPermissionTag, state)((user, ps))
+      }
+  }
 
-    // This interpreter may throw in runtime
-    /*def eval0[T <: TypeTag](state: State, p: Patch[T])(using M: Mut0[T]): State =
+  // This interpreter may throw in runtime
+  /*def eval0[T <: TypeTag](state: State, p: Patch[T])(using M: Mut0[T]): State =
       p match
         case Patch.SetUserId(userId) =>
           M.coerce(12) // it accepts 12 as an int but throws in runtime.
@@ -189,16 +209,17 @@ object Patches3:
         case Patch.RmSibling(sid)          => M.update(state)(M.coerce(sid))
         case Patch.AddPermission(user, ps) => M.update(state)(M.coerce((user, ps)))*/
 
-  end Patch
+  // end Patch
 
   final case class State(
       id: UsrId = -1L, // a primitive type
       siblings: Set[UsrId] = immutable.Set.empty, // Set
-      usrPermissions: Map[UsrId, Permission] = immutable.Map.empty):
+      usrPermissions: Map[UsrId, Permission] = immutable.Map.empty) {
     override def toString(): String =
       s"User($id, sbs=[${siblings.mkString(",")}], perms=[${usrPermissions.mkString(",")}])"
+  }
 
-  def main(args: Array[String]) =
+  def main(args: Array[String]) = {
     import Patch.*
 
     println(deserialize(serialize(setUserId(999L))))
@@ -208,7 +229,9 @@ object Patches3:
         Patch.eval(acc, c)
       }
     println(r)
+  }
+}
 
-  end main
+// end main
 
-end Patches3
+// end Patches3

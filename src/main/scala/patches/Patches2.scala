@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 
 import schema.v1.{ TypeTag, UserPatchPB }
 
-object Patches2:
+object Patches2 {
 
   type Id[T] = T
 
@@ -28,36 +28,43 @@ object Patches2:
       siblings: immutable.Set[UsrId] = immutable.Set.empty,
       usrPermissions: immutable.Map[UsrId, Permission] = immutable.Map.empty)
 
-  sealed trait Mutation[F[_], In]:
+  sealed trait Mutation[F[_], In] {
     def update(state: UserState)(newData: In): UserState
+  }
 
-  object Mutation:
+  object Mutation {
 
-    given setUser: Mutation[Id, UsrId] = new:
+    given setUser: Mutation[Id, UsrId] = new {
       def update(state: UserState)(arg: UsrId): UserState =
         state.modify(_.id).setTo(arg)
+    }
 
-    given addSibling: Mutation[Set, UsrId] = new:
+    given addSibling: Mutation[Set, UsrId] = new {
       def update(state: UserState)(arg: UsrId): UserState =
         state.modify(_.siblings).using(_ + arg)
+    }
 
-    given rmSibling: Mutation[Set, UsrId] = new:
+    given rmSibling: Mutation[Set, UsrId] = new {
       def update(state: UserState)(args: UsrId): UserState =
         state.modify(_.siblings).using(_ - args)
+    }
 
-    given addPermission: Mutation[PermsMap[UsrId], (UsrId, Permission)] = new:
-      def update(state: UserState)(args: (UsrId, Permission)): UserState =
+    given addPermission: Mutation[PermsMap[UsrId], (UsrId, Permission)] = new {
+      def update(state: UserState)(args: (UsrId, Permission)): UserState = {
         val userId = args._1
         val p = args._2
         state.modify(_.usrPermissions).using(_ + (userId -> p))
+      }
+    }
+  }
 
-  end Mutation
+  // end Mutation
 
   /** The [[Patches2.Patch]] structure takes the role of events from Event sourcing. It contains the information of
     * events but in a eDSL that is targeted to make a structural changes to the [[UserState]]. It describes how we allow
     * users to dive into different parts of the state and make changes.
     */
-  enum Patch[State](val tag: TypeTag):
+  enum Patch[State](val tag: TypeTag) {
     self =>
 
     def ++(that: Patch[State]): Patch[State] = Patch.Both(self, that)
@@ -68,10 +75,11 @@ object Patches2:
     case AddSiblingId(sibId: UsrId) extends Patch[State](TypeTag.AddSiblingTag)
     case RemoveSiblingId(sibId: UsrId) extends Patch[State](TypeTag.RmSiblingTag)
     case AddUserPermission(userId: UsrId, permission: Permission) extends Patch[State](TypeTag.AddPermissionTag)
+  }
 
-  end Patch
+  // end Patch
 
-  object Patch:
+  object Patch {
     // constructors
     def setUserId(usr: UsrId): Patch[UserState] = SetUserId(usr)
     def addSibling(sib: UsrId): Patch[UserState] = AddSiblingId(sib)
@@ -88,7 +96,7 @@ object Patches2:
         (bytes(6) & 0xffL) << 8 |
         (bytes(7) & 0xffL)
 
-    def writeLong(i: Long): Array[Byte] =
+    def writeLong(i: Long): Array[Byte] = {
       val array = Array.ofDim[Byte](8)
       array(0) = (i >>> 56).toByte
       array(1) = (i >>> 48).toByte
@@ -99,9 +107,10 @@ object Patches2:
       array(6) = (i >>> 8).toByte
       array(7) = i.toByte
       array
+    }
 
     def serialize[T <: Patch[?]](p: T): UserPatchPB =
-      p match
+      p match {
         case SetUserId(userId) =>
           UserPatchPB(p.tag, com.google.protobuf.UnsafeByteOperations.unsafeWrap(writeLong(userId)))
         case AddSiblingId(sId) =>
@@ -115,9 +124,10 @@ object Patches2:
           bb.put(pmBts)
           UserPatchPB(p.tag, com.google.protobuf.UnsafeByteOperations.unsafeWrap(bb.array()))
         case Both(_, _) => throw new Exception("Cannot serialize Both !")
+      }
 
     def deserialize(pb: UserPatchPB): Patch[?] =
-      pb.typeTag match
+      pb.typeTag match {
         case TypeTag.SetUserIdTag  => SetUserId(readLong(pb.payload.toByteArray))
         case TypeTag.AddSiblingTag => AddSiblingId(readLong(pb.payload.toByteArray))
         case TypeTag.RmSiblingTag  => RemoveSiblingId(readLong(pb.payload.toByteArray))
@@ -128,6 +138,7 @@ object Patches2:
           bb.get(bytes)
           AddUserPermission(usr, new String(bytes, StandardCharsets.UTF_8))
         case TypeTag.Unrecognized(_) => throw new Exception("Unrecognized TypeTag!")
+      }
 
     val maxStackSize = 1 << 9 // 20000
 
@@ -136,49 +147,59 @@ object Patches2:
         patch: Patch[UserState],
         acc: scala.collection.mutable.ArrayBuffer[Patch[UserState]] =
           new scala.collection.mutable.ArrayBuffer[Patch[UserState]],
-      ): UserState =
-      def evalState(state: UserState, acc: scala.collection.mutable.ArrayBuffer[Patch[UserState]]): UserState =
+      ): UserState = {
+      def evalState(state: UserState, acc: scala.collection.mutable.ArrayBuffer[Patch[UserState]]): UserState = {
         var cur = state
         acc.foreach(m => cur = eval(cur, m))
         cur
+      }
 
       if (acc.size <= maxStackSize)
-        patch match
+        patch match {
           case both: Patch.Both[UserState] => evalOptimizedRev(state, both.a, acc.:+(both.b))
           case last                        => evalState(state, acc.:+(last))
-      else
+        }
+      else {
         val localState = evalState(state, acc)
         evalOptimizedRev(localState, patch)
+      }
+    }
 
     // apples in direct order inside batches
     def evalOptimized(
         state: UserState,
         patch: Patch[UserState],
         acc: List[Patch[UserState]] = Nil,
-      ): UserState =
-      def evalState(state: UserState, acc: List[Patch[UserState]]): UserState =
+      ): UserState = {
+      def evalState(state: UserState, acc: List[Patch[UserState]]): UserState = {
         var cur = state
         acc.foreach(m => cur = eval(cur, m))
         cur
+      }
 
-      patch match
+      patch match {
         case both: Patch.Both[UserState] =>
           if (acc.size <= maxStackSize) evalOptimized(state, both.b, both.a :: acc)
-          else
+          else {
             val localState = evalState(state, acc)
             evalOptimized(localState, patch, Nil)
+          }
         case one =>
-          acc.headOption match
+          acc.headOption match {
             case Some(value) =>
-              value match
+              value match {
                 case both: Patch.Both[UserState] =>
                   evalOptimized(state, both, one :: acc.tail)
                 case _ =>
                   evalState(state, acc.head :: one :: acc.tail)
+              }
             case None => evalState(state, one :: acc)
+          }
+      }
+    }
 
     private def eval(state: UserState, m: Patch[UserState]): UserState =
-      m match
+      m match {
         case both: Both[UserState] =>
           // reverse order
           // eval(eval(state, single), both)
@@ -190,12 +211,13 @@ object Patches2:
         case Patch.AddSiblingId(sibId)                   => Mutation.addSibling.update(state)(sibId)
         case Patch.RemoveSiblingId(sibId)                => Mutation.rmSibling.update(state)(sibId)
         case Patch.AddUserPermission(userId, permission) => Mutation.addPermission.update(state)((userId, permission))
+      }
 
     def evalRec(
         state: UserState,
         patch: Patch[UserState],
       ): scala.util.control.TailCalls.TailRec[UserState] =
-      patch match
+      patch match {
         case Patch.Both(cur, next) =>
           scala.util.control.TailCalls.tailcall(evalRec(state, cur)).flatMap(s => evalRec(s, next))
         case Patch.SetUserId(userId) =>
@@ -206,10 +228,12 @@ object Patches2:
           scala.util.control.TailCalls.done(Mutation.rmSibling.update(state)(sibId))
         case Patch.AddUserPermission(userId, permission) =>
           scala.util.control.TailCalls.done(Mutation.addPermission.update(state)((userId, permission)))
+      }
+  }
 
-  end Patch
+  // end Patch
 
-  def main(args: Array[String]) =
+  def main(args: Array[String]) = {
     import Patch.*
 
     val muts: Patch[UserState] =
@@ -223,7 +247,9 @@ object Patches2:
     val s1 = evalOptimizedRev(UserState(), muts)
     val s2 = evalOptimized(UserState(), muts)
     println(s)
+  }
+}
 
-  end main
+// end main
 
-end Patches2
+// end Patches2

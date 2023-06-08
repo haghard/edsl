@@ -16,8 +16,9 @@ lazy val scalac3Settings = Seq(
     "-Ykind-projector",
     "-Ysafe-init", //guards against forward access reference
     "-Wunused:all",
+    "-no-indent" //forces to use braces
     //"-Xfatal-warnings"
-  ) ++ Seq("-rewrite", "-indent") ++ Seq("-source", "future-migration")
+  ) ++ Seq("-rewrite"/*, "-indent"*/) ++ Seq("-source", "future-migration")
 )
 
 lazy val commonSettings = scalac3Settings ++ Seq(
@@ -37,8 +38,8 @@ lazy val commonSettings = scalac3Settings ++ Seq(
 
   //https://scala-lang.org/blog/2023/05/30/scala-3.3.0-released.html
 
-  //scalaVersion := "3.3.0",
-  scalaVersion := "3.3.1-RC1",
+  scalaVersion := "3.3.0",
+  //scalaVersion := "3.3.1-RC1",
   headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
   headerLicense  := Some(HeaderLicense.Custom(
     """|Copyright (c) 2021-23 by Vadim Bondarev

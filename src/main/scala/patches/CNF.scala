@@ -10,7 +10,7 @@ import scala.quoted.*
 //https://virtuslab.com/blog/metaprogramming-in-scala-2-3/
 
 //CNF (Conjunctive Normal Form)
-object CNF:
+object CNF {
 
   transparent inline def apply(
       inline cnfSpec: String,
@@ -22,7 +22,7 @@ object CNF:
     )(
       cnfSpec: Expr[String],
       booleanSeqExpr: Expr[Seq[Boolean]],
-    ): Expr[Boolean] =
+    ): Expr[Boolean] = {
 
     // "unpack" Expr[Seq[T]] to Seq[Expr[T]]
     val Varargs(booleans: Seq[Expr[Boolean]]) = booleanSeqExpr: @unchecked
@@ -54,3 +54,5 @@ object CNF:
         println(out)
         out
       }
+  }
+}

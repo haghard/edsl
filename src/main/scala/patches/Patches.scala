@@ -15,7 +15,7 @@ import scala.annotation.experimental
 import scala.reflect.TypeTest
 import scala.compiletime.ops.int.*
 
-object Patches:
+object Patches {
 
   import compiletime.asMatchable
   // def f[X](x: X) = x.asMatchable match {}
@@ -23,7 +23,7 @@ object Patches:
   opaque type UsrId <: Int = Int
   opaque type Permission <: String = String
 
-  enum UserPatch[T](data: T, val protoTag: TypeTag):
+  enum UserPatch[T](data: T, val protoTag: TypeTag) {
     self =>
 
     case SetUserId(userId: UsrId) extends UserPatch(userId, TypeTag.SetUserIdTag)
@@ -31,10 +31,11 @@ object Patches:
     case RmSibling(sibId: UsrId) extends UserPatch(sibId, TypeTag.RmSiblingTag)
     case AddPermission(userId: UsrId, permission: Permission)
         extends UserPatch((userId, permission), TypeTag.AddPermissionTag)
+  }
 
-  end UserPatch
+  // end UserPatch
 
-  object UserPatch:
+  object UserPatch {
 
     def setUserId[T <: UsrId & Singleton, p >: T >= 1 <: true](userId: T): SetUserId = SetUserId(userId)
     def addSibling[T <: UsrId & Singleton, p >: T >= 1 <: true](sibId: T): AddSibling = AddSibling(sibId)
@@ -43,7 +44,7 @@ object Patches:
       AddPermission(userId, p)
 
     def toProto[T](p: UserPatch[T]): UserPatchPB =
-      p match
+      p match {
         case SetUserId(userId) =>
           UserPatchPB(p.protoTag, com.google.protobuf.UnsafeByteOperations.unsafeWrap(UserPatch.writeInt(userId)))
         case AddSibling(sibId) =>
@@ -56,9 +57,10 @@ object Patches:
           bb.putInt(userId)
           bb.put(pmBts)
           UserPatchPB(p.protoTag, com.google.protobuf.UnsafeByteOperations.unsafeWrap(bb.array()))
+      }
 
     def fromProto(p: UserPatchPB): UserPatch[?] =
-      p.typeTag match
+      p.typeTag match {
         case TypeTag.SetUserIdTag  => SetUserId(readInt(p.payload.toByteArray))
         case TypeTag.AddSiblingTag => AddSibling(readInt(p.payload.toByteArray))
         case TypeTag.RmSiblingTag  => RmSibling(readInt(p.payload.toByteArray))
@@ -69,14 +71,16 @@ object Patches:
           bb.get(bytes)
           AddPermission(usr, new String(bytes, StandardCharsets.UTF_8))
         case TypeTag.Unrecognized(_) => throw new Exception("Unrecognized TypeTag!")
+      }
 
-    def writeInt(i: Int): Array[Byte] =
+    def writeInt(i: Int): Array[Byte] = {
       val array = Array.ofDim[Byte](4)
       array(0) = (i >>> 24).toByte
       array(1) = (i >>> 16).toByte
       array(2) = (i >>> 8).toByte
       array(3) = i.toByte
       array
+    }
 
     def readInt(bytes: Array[Byte]): Int =
       (bytes(0) << 24) |
@@ -88,24 +92,27 @@ object Patches:
       */
     def applyPatch(state: UserState): [Patch <: UserPatch[?]] => Patch => UserState =
       [Patch <: UserPatch[?]] => { (arg: Patch) =>
-        arg match
+        arg match {
           case UserPatch.SetUserId(userId)        => state.modify(_.id).setTo(userId)
           case UserPatch.AddSibling(userId)       => state.modify(_.siblings).using(_ + userId)
           case UserPatch.RmSibling(userId)        => state.modify(_.siblings).using(_ - userId)
           case UserPatch.AddPermission(userId, p) => state.modify(_.usrPermissions).using(_ + (userId -> p))
-        // println(s"${classOf[UserPatch.AddPermission].getSimpleName}($userId,$p)")
+        }
+      // println(s"${classOf[UserPatch.AddPermission].getSimpleName}($userId,$p)")
       }
+  }
 
-  end UserPatch
+  // end UserPatch
 
   case class UserState(
       id: UsrId = -1,
       siblings: immutable.Set[UsrId] = immutable.Set.empty,
-      usrPermissions: immutable.Map[UsrId, Permission] = immutable.Map.empty):
+      usrPermissions: immutable.Map[UsrId, Permission] = immutable.Map.empty) {
     override def toString(): String =
       s"User($id, sbs=[${siblings.mkString(",")}], perms=[${usrPermissions.mkString(",")}])"
+  }
 
-  def main(args: Array[String]): Unit =
+  def main(args: Array[String]): Unit = {
     import UserPatch.*
 
     val r = List(addPermission(1, "***"), setUserId(1), addSibling(2), addSibling(3))
@@ -115,5 +122,7 @@ object Patches:
       }
 
     println(r)
+  }
+}
 
-end Patches
+// end Patches

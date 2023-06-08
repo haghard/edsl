@@ -9,7 +9,7 @@ package patches
 //https://slides.com/olegnizhnik/profdata#/3/6
 
 //https://yadukrishnan.live/compile-time-error-generation-using-inline-in-scala-3
-object InlineCompilerError:
+object InlineCompilerError {
 
   import scala.compiletime.*
   import scala.compiletime.ops.string.*
@@ -22,77 +22,91 @@ object InlineCompilerError:
       println(s"Correct version information")
 
   checkVersion("1.2.0.6")
+}
 
 //Type-level parser
 //
-object Parser:
+object Parser {
   // Compile-time operations
   import scala.compiletime.ops.int.+
   import scala.compiletime.ops.string.{ CharAt, Length, Substring, Matches } // try Matches
 
   // parameter untupling,
-  type Args[S <: String] <: Tuple = S match
+  type Args[S <: String] <: Tuple = S match {
     case "" => EmptyTuple
     case _ =>
-      CharAt[S, 0] match
+      CharAt[S, 0] match {
         case '%' =>
-          CharAt[S, 1] match
+          CharAt[S, 1] match {
             case 'd' => Int *: Args[Substring[S, 2, Length[S]]]
             case 's' => String *: Args[Substring[S, 2, Length[S]]]
+          }
         case _ => Args[Substring[S, 1, Length[S]]]
+      }
+  }
 
-  def parse(str: String)(args: Args[str.type]): Unit =
+  def parse(str: String)(args: Args[str.type]): Unit = {
     val list = args.toList
     println(s"${list(0)} is ${list(1)}")
+  }
 
   parse("%s is %d")("Adam Bell", 45)
 
   summon[Args["%s is %d"] =:= (String, Int)]
+}
 
-end Parser
+// end Parser
 
-object Terms:
+object Terms {
 
   sealed trait TermOps[T]
   object Empty extends TermOps[Nothing]
 
-  trait FilterableOps[T] extends TermOps[T]:
+  trait FilterableOps[T] extends TermOps[T] {
     def eq$(v: T): Unit
     def notEq$(v: T): Unit
+  }
 
-  trait SetOps[T] extends TermOps[T]:
+  trait SetOps[T] extends TermOps[T] {
     def in$(vs: Set[T]): Unit
+  }
 
-  trait TypedTermOps[T <: String & Singleton]:
+  trait TypedTermOps[T <: String & Singleton] {
     type A
     type Term <: TermOps[A]
     def ops: Term
+  }
 
-  object TypedTermOps:
+  object TypedTermOps {
 
-    given name: TypedTermOps["name"] with
+    given name: TypedTermOps["name"] with {
       type A = String
       type Term = FilterableOps[A]
-      def ops: Term = new FilterableOps[A]:
+      def ops: Term = new FilterableOps[A] {
         def eq$(v: A): Unit = println(s"$v eq")
         def notEq$(v: A): Unit = println(s"$v notEq")
+      }
+    }
 
-    given age: TypedTermOps["age"] with
+    given age: TypedTermOps["age"] with {
       type A = Int
       type Term = SetOps[Int]
       def ops: Term = (vs: Set[Int]) => println(s"$vs in")
+    }
+  }
 
-  end TypedTermOps
+  // end TypedTermOps
 
   def term(name: String)(using TTC: TypedTermOps[name.type]): TTC.Term = TTC.ops
 
   term("name").eq$("aa")
   term("name").notEq$("aa")
   term("age").in$(Set(1, 2))
+}
 
-end Terms
+// end Terms
 
-object Tips3:
+object Tips3 {
 
   import quoted.*
 
@@ -100,12 +114,14 @@ object Tips3:
   final case class B(name: String, arg: Double)
   final case class C(name: String, arg: Char)
 
-  trait Trm[A]:
+  trait Trm[A] {
     type T
     def term(a: A): T
+  }
 
-  object Trm:
+  object Trm {
     extension [A](a: A)(using s: Trm[A]) def term = s.term(a)
+  }
 
   /*trait Show[A]:
     def show(a: A): String
@@ -116,51 +132,64 @@ object Tips3:
   end Show
    */
 
-  object A:
+  object A {
     // given Show[A] with def show(a: A): String = a.name
-    given Trm[A] with
+    given Trm[A] with {
       type T = Int
       def term(a: A): T = a.arg
+    }
+  }
 
-  object B:
+  object B {
     // given Show[B] with def show(b: B): String = b.name
-    given Trm[B] with
+    given Trm[B] with {
       type T = Double
       def term(b: B): T = b.arg
+    }
+  }
 
-  object C:
+  object C {
     // given Show[C] with def show(c: C): String = c.name
-    given Trm[C] with
+    given Trm[C] with {
       type T = Char
       def term(c: C): T = c.arg
+    }
+  }
 
-  trait Column[A[_]]:
+  trait Column[A[_]] {
     type B
     val b: B
     given ev: A[B]
     // The evidence of the type class Show|Trm is provided by the context function A[B] ?=> B => C.
     def use[C](f: A[B] ?=> B => C): C = f(b)
+  }
 
-  object Column:
+  object Column {
     inline def apply[A[_]](a: Any) = ${
       applyImpl[A]('a)
     }
 
-    private def applyImpl[A[_]](a: Expr[Any])(using Quotes, Type[A]) =
+    private def applyImpl[A[_]](a: Expr[Any])(using Quotes, Type[A]) = {
       import quotes.reflect.*
-      a match
+      a match {
         case '{ $a: i } =>
-          TypeRepr.of[i].widen.asType match
+          TypeRepr.of[i].widen.asType match {
             case '[j] =>
               val expr = Expr
                 .summon[A[j]]
                 .getOrElse(report.errorAndAbort(s"Can't find instance of ${Type.show[A[j]]} for ${Type.show[j]}"))
               '{
-                new Column[A]:
+                new Column[A] {
                   type B = j
                   val b: B = ${ a.asExprOf[j] }
                   given ev: A[j] = ${ expr }
+                }
               }
-  end Column
+          }
+      }
+    }
+  }
+  // end Column
+}
 
-end Tips3
+// end Tips3
