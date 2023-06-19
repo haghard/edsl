@@ -16,7 +16,7 @@ lazy val scalac3Settings = Seq(
     "-Ykind-projector",
     "-Ysafe-init", //guards against forward access reference
     "-Wunused:all",
-    "-no-indent" //forces to use braces
+    "-no-indent", //forces to use braces
     //"-Xfatal-warnings"
   ) ++ Seq("-rewrite"/*, "-indent"*/) ++ Seq("-source", "future-migration")
 )
@@ -53,7 +53,7 @@ scalafmtOnCompile := true
 
 resolvers ++= Seq(Resolver.jcenterRepo, "Sonatype Public" at "https://oss.sonatype.org/content/groups/public/")
 
-val AmmoniteVersion = "2.5.8"
+val AmmoniteVersion = "3.0.0-M0-32-96e851cb"
 libraryDependencies ++= Seq(
   "com.softwaremill.quicklens" %% "quicklens" % "1.8.10",
   "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
