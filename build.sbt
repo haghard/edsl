@@ -38,8 +38,8 @@ lazy val commonSettings = scalac3Settings ++ Seq(
 
   //https://scala-lang.org/blog/2023/05/30/scala-3.3.0-released.html
 
-  scalaVersion := "3.3.1",
-  //scalaVersion := "3.3.1-RC1",
+  scalaVersion := "3.4.0",
+  //scalaVersion := "3.3.1",
   headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
   headerLicense  := Some(HeaderLicense.Custom(
     """|Copyright (c) 2021-23 by Vadim Bondarev
