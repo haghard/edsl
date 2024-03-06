@@ -7,12 +7,9 @@ package patches
 import com.softwaremill.quicklens.*
 import schema.v1.{ TypeTag, UserPatchPB }
 
-import scala.util.control.*
 import scala.collection.*
 import java.nio.ByteBuffer
-import java.nio.charset.{ Charset, StandardCharsets }
-import scala.annotation.experimental
-import scala.reflect.TypeTest
+import java.nio.charset.StandardCharsets
 import scala.compiletime.ops.int.*
 
 object Patches {
@@ -23,7 +20,7 @@ object Patches {
   opaque type UsrId <: Int = Int
   opaque type Permission <: String = String
 
-  enum UserPatch[T](data: T, val protoTag: TypeTag) {
+  enum UserPatch[T](val data: T, val protoTag: TypeTag) {
     self =>
 
     case SetUserId(userId: UsrId) extends UserPatch(userId, TypeTag.SetUserIdTag)
@@ -91,15 +88,14 @@ object Patches {
     /** polymorphic context function
       */
     def applyPatch(state: UserState): [Patch <: UserPatch[?]] => Patch => UserState =
-      [Patch <: UserPatch[?]] => { (arg: Patch) =>
-        arg match {
+      [Patch <: UserPatch[?]] =>
+        (_: Patch) match {
           case UserPatch.SetUserId(userId)        => state.modify(_.id).setTo(userId)
           case UserPatch.AddSibling(userId)       => state.modify(_.siblings).using(_ + userId)
           case UserPatch.RmSibling(userId)        => state.modify(_.siblings).using(_ - userId)
           case UserPatch.AddPermission(userId, p) => state.modify(_.usrPermissions).using(_ + (userId -> p))
-        }
-      // println(s"${classOf[UserPatch.AddPermission].getSimpleName}($userId,$p)")
       }
+      // println(s"${classOf[UserPatch.AddPermission].getSimpleName}($userId,$p)")
   }
 
   // end UserPatch

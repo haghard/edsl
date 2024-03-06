@@ -55,7 +55,7 @@ resolvers ++= Seq(Resolver.jcenterRepo, "Sonatype Public" at "https://oss.sonaty
 
 val AmmoniteVersion = "3.0.0-M0-32-96e851cb"
 libraryDependencies ++= Seq(
-  "com.softwaremill.quicklens" %% "quicklens" % "1.8.10",
+  "com.softwaremill.quicklens" %% "quicklens" % "1.9.7",
   "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
 
   "dev.zio" %% "zio-constraintless" % "0.3.2",

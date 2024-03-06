@@ -244,9 +244,12 @@ object Patches2 {
     println("serialize and deserialize: " + deserialize(serialize(addPerm(Long.MaxValue, "*"))))
 
     val s = evalRec(UserState(), muts).result
-    val s1 = evalOptimizedRev(UserState(), muts)
-    val s2 = evalOptimized(UserState(), muts)
     println(s)
+    val s1 = evalOptimizedRev(UserState(), muts)
+    println(s1)
+    val s2 = evalOptimized(UserState(), muts)
+    println(s2)
+
   }
 }
 

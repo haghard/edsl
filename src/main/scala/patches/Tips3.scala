@@ -13,7 +13,6 @@ object InlineCompilerError {
 
   import scala.compiletime.*
   import scala.compiletime.ops.string.*
-  import ops.string.*
 
   inline def checkVersion(versionNo: String) =
     inline if (!constValue[Matches[versionNo.type, "[\\d]+\\.[\\d]+[\\.\\d]*"]])
@@ -28,8 +27,7 @@ object InlineCompilerError {
 //
 object Parser {
   // Compile-time operations
-  import scala.compiletime.ops.int.+
-  import scala.compiletime.ops.string.{ CharAt, Length, Substring, Matches } // try Matches
+  import scala.compiletime.ops.string.{ CharAt, Length, Substring } // try Matches
 
   // parameter untupling,
   type Args[S <: String] <: Tuple = S match {

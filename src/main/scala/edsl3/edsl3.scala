@@ -40,7 +40,6 @@ object Exp {
 
 object Program {
   import Exp.*
-  import Num.*
 
   def apply(): Unit = {
     val exp =
