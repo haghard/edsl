@@ -67,7 +67,8 @@ object Patches {
           val bytes = new Array[Byte](bb.remaining())
           bb.get(bytes)
           AddPermission(usr, new String(bytes, StandardCharsets.UTF_8))
-        case TypeTag.Unrecognized(_) => throw new Exception("Unrecognized TypeTag!")
+        case TypeTag.Unrecognized(_) =>
+          throw new Exception("Unrecognized TypeTag!")
       }
 
     def writeInt(i: Int): Array[Byte] = {
@@ -90,17 +91,21 @@ object Patches {
     def applyPatch(state: UserState): [Patch <: UserPatch[?]] => Patch => UserState =
       [Patch <: UserPatch[?]] =>
         (_: Patch) match {
-          case UserPatch.SetUserId(userId)        => state.modify(_.id).setTo(userId)
-          case UserPatch.AddSibling(userId)       => state.modify(_.siblings).using(_ + userId)
-          case UserPatch.RmSibling(userId)        => state.modify(_.siblings).using(_ - userId)
-          case UserPatch.AddPermission(userId, p) => state.modify(_.usrPermissions).using(_ + (userId -> p))
+          case UserPatch.SetUserId(userId) =>
+            state.modify(_.id).setTo(userId)
+          case UserPatch.AddSibling(userId) =>
+            state.modify(_.siblings).using(_ + userId)
+          case UserPatch.RmSibling(userId) =>
+            state.modify(_.siblings).using(_ - userId)
+          case UserPatch.AddPermission(userId, p) =>
+            state.modify(_.usrPermissions).using(_ + (userId -> p))
       }
       // println(s"${classOf[UserPatch.AddPermission].getSimpleName}($userId,$p)")
   }
 
   // end UserPatch
 
-  case class UserState(
+  final case class UserState(
       id: UsrId = -1,
       siblings: immutable.Set[UsrId] = immutable.Set.empty,
       usrPermissions: immutable.Map[UsrId, Permission] = immutable.Map.empty) {
