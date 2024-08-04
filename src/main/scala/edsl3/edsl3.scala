@@ -4,22 +4,32 @@
 
 package edsl3
 
-trait Num[T] {
-  def sum(a: T, b: T): T
+sealed trait Num[T] {
+  def ++(a: T, b: T): T
+  def --(a: T, b: T): T
 }
 
 object Num {
   given Integer: Num[Int] with {
     val code: Byte = 0x00
-    def sum(a: Int, b: Int): Int = a + b
+    def ++(a: Int, b: Int): Int = a + b
+    def --(a: Int, b: Int): Int = a - b
     override val toString = "i"
   }
+
+  given Dbl: Num[Double] with {
+    val code: Byte = 0x01
+    def ++(a: Double, b: Double) = a + b
+    def --(a: Double, b: Double) = a - b
+
+    override val toString = "d"
+  }
+
 }
 
 // end Num
 
 enum Exp[T] {
-
   case IntExp(v: Int) extends Exp[Int]
   case DblExt(v: Double) extends Exp[Double]
   case Sum[T](lhs: Exp[T], rhs: Exp[T])(using val ev: Num[T]) extends Exp[T]
@@ -31,10 +41,16 @@ object Exp {
 
   def eval[T](exp: Exp[T]): T =
     exp match {
-      case IntExp(v)            => v
-      case DblExt(v)            => v
-      case s @ Sum(left, right) => s.ev.sum(eval(left), eval(right))
-      case zip: Zip[a, b]       => (eval(zip.lhs), eval(zip.rhs))
+      case IntExp(v) =>
+        v
+      case DblExt(v) =>
+        v
+      case s @ Sum(left, right) =>
+        val l = eval(left)
+        val r = eval(right)
+        s.ev ++ (l, r)
+      case zip: Zip[a, b] =>
+        (eval(zip.lhs), eval(zip.rhs))
     }
 }
 

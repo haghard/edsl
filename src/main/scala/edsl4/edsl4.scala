@@ -6,6 +6,7 @@ package edsl4
 
 import zio.constraintless.*
 import TypeList.*
+import scala.language.adhocExtensions
 
 trait Num[T] {
   def sum(a: T, b: T): T

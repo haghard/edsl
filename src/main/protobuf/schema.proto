@@ -5,18 +5,19 @@ import "scalapb/scalapb.proto";
 package schema.v1;
 
 option (scalapb.options) = {
-    single_file: true
-    flat_package: true
-    preserve_unknown_fields: false
-    lenses: false
+  single_file: true
+  flat_package: true
+  preserve_unknown_fields: false
+  lenses: false
 };
 
 enum TypeTag {
-  SetUserIdTag=0;
-  AddSiblingTag=1;
-  RmSiblingTag=2;
-  AddPermissionTag=3;
+  SetUserIdTag = 0;
+  AddSiblingTag = 1;
+  RmSiblingTag = 2;
+  AddPermissionTag = 3;
 }
+
 
 message UserPatchPB {
   TypeTag typeTag = 1;

@@ -70,7 +70,6 @@ object Patches2 {
     def ++(that: Patch[State]): Patch[State] = Patch.Both(self, that)
 
     case Both[State](a: Patch[State], b: Patch[State]) extends Patch[State](TypeTag.Unrecognized(-1))
-
     case SetUserId(userId: UsrId) extends Patch[State](TypeTag.SetUserIdTag)
     case AddSiblingId(sibId: UsrId) extends Patch[State](TypeTag.AddSiblingTag)
     case RemoveSiblingId(sibId: UsrId) extends Patch[State](TypeTag.RmSiblingTag)
@@ -142,13 +141,13 @@ object Patches2 {
 
     val maxStackSize = 1 << 9 // 20000
 
+    import scala.collection.mutable
     def evalOptimizedRev(
         state: UserState,
         patch: Patch[UserState],
-        acc: scala.collection.mutable.ArrayBuffer[Patch[UserState]] =
-          new scala.collection.mutable.ArrayBuffer[Patch[UserState]],
+        acc: mutable.ArrayBuffer[Patch[UserState]] = new mutable.ArrayBuffer[Patch[UserState]],
       ): UserState = {
-      def evalState(state: UserState, acc: scala.collection.mutable.ArrayBuffer[Patch[UserState]]): UserState = {
+      def evalState(state: UserState, acc: mutable.ArrayBuffer[Patch[UserState]]): UserState = {
         var cur = state
         acc.foreach(m => cur = eval(cur, m))
         cur
@@ -193,7 +192,8 @@ object Patches2 {
                 case _ =>
                   evalState(state, acc.head :: one :: acc.tail)
               }
-            case None => evalState(state, one :: acc)
+            case None =>
+              evalState(state, one :: acc)
           }
       }
     }

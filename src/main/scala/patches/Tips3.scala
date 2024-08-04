@@ -31,7 +31,8 @@ object Parser {
 
   // parameter untupling,
   type Args[S <: String] <: Tuple = S match {
-    case "" => EmptyTuple
+    case "" =>
+      EmptyTuple
     case _ =>
       CharAt[S, 0] match {
         case '%' =>
@@ -48,7 +49,7 @@ object Parser {
     println(s"${list(0)} is ${list(1)}")
   }
 
-  parse("%s is %d")("Adam Bell", 45)
+  parse("%s is %d")("Adam Bell", 10)
 
   summon[Args["%s is %d"] =:= (String, Int)]
 }
@@ -118,7 +119,7 @@ object Tips3 {
   }
 
   object Trm {
-    extension [A](a: A)(using s: Trm[A]) def term = s.term(a)
+    extension [A](a: A)(using s: Trm[A]) def term: s.T = s.term(a)
   }
 
   /*trait Show[A]:

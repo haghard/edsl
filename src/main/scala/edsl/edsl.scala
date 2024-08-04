@@ -92,6 +92,8 @@ enum DslElement[A] {
 
   def <=(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = LesserOrEq(self, that, N)
 
+  def !=(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = NotEq(self, that, N)
+
   def as[B](using c: Coercion[A, B]): DslElement[B] = Coercible[A, B](self, c)
 
   def d(using c: Coercion[A, Double]): DslElement[Double] = Coercible(self, c)
@@ -142,6 +144,11 @@ enum DslElement[A] {
       right: DslElement[A],
       N: NumTag[A]) extends DslElement[Boolean]
 
+  case NotEq(
+      left: DslElement[A],
+      right: DslElement[A],
+      N: NumTag[A]) extends DslElement[Boolean]
+
   case IfThenElse(
       cond: DslElement[Boolean],
       ifTrue: DslElement[A],
@@ -180,6 +187,9 @@ object DslElement {
 
       case DslElement.Eq(left, right, _) =>
         s"${serialize(left)}==${serialize(right)})"
+
+      case DslElement.NotEq(left, right, _) =>
+        s"${serialize(left)}!=${serialize(right)})"
 
       case DslElement.GreaterThan(left, right, _) =>
         s">|${serialize(left)}|${serialize(right)}"
@@ -265,17 +275,87 @@ object DslElement {
           case NumTag.Lng     => eval(op.left) >= eval(op.right)
         }
 
+      case op: DslElement.NotEq[in] =>
+        eval(op.left) != eval(op.right)
+
       case DslElement.IfThenElse(cond, ifTrue, ifFalse) =>
         if (eval(cond)) eval(ifTrue) else eval(ifFalse)
     }
 }
 
+//This env expect (a:int,b:int,c:dbl,d:long)
+object StaticEnv {
+  import scala.compiletime.*
+  import scala.compiletime.ops.string.*
+  import scala.compiletime.ops.string.{ CharAt, Length, Substring }
+  import scala.Tuple.*
+  import scala.compiletime.ops.*
+
+  // https://blog.rockthejvm.com/practical-type-level-programming/
+  // https://github.com/ncreep/scala3-flat-json-blog
+  type ++[A, B] <: String = (A, B) match { case (a, b) => a + b }
+  type MkLine[T <: Tuple] = Fold[Init[T], Last[T], [a, b] =>> a ++ "," ++ b]
+  type Vars = ("a", "b", "c", "d")
+
+  type Args[S <: String] <: Tuple =
+    S match {
+      case "" =>
+        EmptyTuple
+      case _ =>
+        CharAt[S, 0] match {
+          case 'a' | 'b' =>
+            Int *: Args[Substring[S, 1, Length[S]]]
+          case 'c' =>
+            Double *: Args[Substring[S, 1, Length[S]]]
+          case 'd' =>
+            Long *: Args[Substring[S, 1, Length[S]]]
+          case ',' =>
+            Args[Substring[S, 1, Length[S]]]
+          case _ =>
+            Args[Substring[S, 1, Length[S]]]
+        }
+    }
+
+  def init(varNames: String)(varValues: Args[varNames.type]): scala.collection.immutable.Map[String, Any] = {
+    val values = varValues.toList
+    val envVars =
+      varNames.split(',').zipWithIndex.map { case (name, i) => (name, values(i)) }.toMap
+
+    println(s"""
+         |★ ★ ★ ★ ★ ★ ★ ★ ★ Env ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
+         |[${constValue[StaticEnv.MkLine[StaticEnv.Vars]]}]
+         |----------------------------------------+
+         |[${envVars.mkString(",")}]
+         |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
+         |""".stripMargin)
+
+    envVars
+  }
+}
+
 extension [A: NumTag](v: A) {
-  inline def lit(using tag: NumTag[A]): DslElement[A] =
+  inline def num(using tag: NumTag[A]): DslElement[A] =
     DslElement.Val(v, tag)
 }
 
 extension (v: String) {
+
+  def env[A: NumTag](using tag: NumTag[A], vars: Map[String, Any]): DslElement[A] =
+    tag match {
+      case NumTag.Integer => DslElement.Val(vars(v).asInstanceOf[Int], tag)
+      case NumTag.Dbl     => DslElement.Val(vars(v).asInstanceOf[Double], tag)
+      case NumTag.Lng     => DslElement.Val(vars(v).asInstanceOf[Long], tag)
+    }
+
+  def int(using vars: Map[String, Any]): DslElement[Int] =
+    DslElement.Val(vars(v).asInstanceOf[Int], NumTag.Integer)
+
+  def lng(using vars: Map[String, Any]): DslElement[Long] =
+    DslElement.Val(vars(v).asInstanceOf[Long], NumTag.Lng)
+
+  def dbl(using vars: Map[String, Any]): DslElement[Double] =
+    DslElement.Val(vars(v).asInstanceOf[Double], NumTag.Dbl)
+
   def parse[A: NumTag](using tag: NumTag[A]): DslElement[A] =
     tag match {
       case NumTag.Integer => DslElement.Val(v.toInt, tag)
@@ -287,14 +367,22 @@ extension (v: String) {
 @main def app(): Unit = Program()
 
 object Program {
-
   import DslElement.*
+  import scala.compiletime.*
+  import scala.compiletime.constValueTuple
+
+  given envVars: scala.collection.immutable.Map[String, Any] =
+    StaticEnv.init(constValue[StaticEnv.MkLine[StaticEnv.Vars]])(3, 45, Double.MaxValue, Long.MaxValue)
+    // printf("%d,%f,$s")
+    // StaticEnv.init("a,b,d,c")(1, 45, 9L, 0.2)
 
   def apply(): Unit =
     try {
-      val exp0 = 1.lit + 5.lit * 10.6.lit.as[Int]
-      val exp1 = 1.67.lit * 10.lit.as[Double] + 89.lit.as[Double]
-      val exp2 = "1.67".parse[Double] + 10.lit.as[Double]
+      val envConstValues = constValueTuple[StaticEnv.Vars]
+
+      val exp0 = 1.num + 5.num * 10.6.num.as[Int]
+      val exp1 = 1.67.num * 10.num.as[Double] + 89.num.as[Double]
+      val exp2 = "1.67".parse[Double] + 10.num.as[Double]
 
       val result0 = eval(exp0)
       println(result0)
@@ -304,20 +392,37 @@ object Program {
       println(result2)
 
       println(serialize(exp1))
-      println(eval(10.6.lit === 10.lit))
+      println(eval(10.6.num === 10.num))
 
-      println(serialize(1.lit === 10.6.lit.as[Int]))
+      println(serialize(1.num === 10.6.num.as[Int]))
 
-      val exp = If(11.lit.===(11.lit), 1.6.lit, 2.1.lit - 1.lit)
+      val exp = If(11.num.===(11.num), 1.6.num, 2.1.num - 1.num)
 
       println(serialize(exp))
       println(eval(exp))
 
-      val exp3 = If(2.1.lit <= 1.56.lit, If(2.lit < 1.lit, 1.lit, 0.lit), -(2.lit + -1.lit))
-
+      val exp3 = If(2.1.num <= 1.56.num, If(2.num < 1.num, 1.num, 0.num), -(2.num + -1.num))
       println(serialize(exp3))
       println(eval(exp3))
-    }
 
-    catch { case NonFatal(ex) => ex.printStackTrace }
+      val exp4 = If("a".env[Int] >= 0.num, 1.num, 0.num)
+      println(serialize(exp4))
+      println(eval(exp4))
+
+      val exp5 = If("a".int >= "b".int, 1.num, 0.num)
+      println(serialize(exp5))
+      println(eval(exp5))
+
+      val (a, b, c, d) = envConstValues
+      If(a.int != b.int, 1.num, 0.num)
+
+      val exp6 = If(a.int >= b.int, 1.num, 0.num)
+      println(serialize(exp6))
+      println(eval(exp6))
+    }
+    catch {
+      case NonFatal(ex) => ex.printStackTrace
+    }
 }
+
+// Todo: serialization with protobuf

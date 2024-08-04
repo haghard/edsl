@@ -12,7 +12,7 @@ package patches
   val columns: List[Column[Trm]] =
     List(Column[Trm](A("a", 1)), Column[Trm](B("b", 3.14)), Column[Trm](C("c", 'z')))
 
-  println(columns.map(_.use(_.term.getClass.getSimpleName)))
+  println(columns.map(_.use(_.term.getClass.getSimpleName())))
 
   val boolVal = false
   println(CNF("(0v1)^(2v-3)", true, false, boolVal, false)) // (true || false) && (boolVal || !false)

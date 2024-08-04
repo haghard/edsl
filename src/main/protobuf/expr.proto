@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+import "scalapb/scalapb.proto";
+
+//https://scalapb.github.io/docs/sealed-oneofs/
+
+message Expr {
+  oneof sealed_value {
+    Literal lit = 1;
+    Add add = 2;
+    Mul mul = 3;
+  }
+}
+
+message Literal {
+  int32 value = 1;
+}
+
+message Add {
+  Expr left = 1;
+  Expr right = 2;
+}
+
+message Mul {
+  Expr left = 1;
+  Expr right = 2;
+}
+
+message ExprProgram {
+  repeated Expr exprs = 1;
+}
+
+/*
+Note that the name of the oneof name is sealed_value. This is what makes ScalaPB treat Expr as a sealed oneof and generate code similar to the following:
+
+sealed trait Expr {
+def isEmpty: Boolean
+    def isDefined: Boolean
+    def asMessage: ExprMessage  // converts to the standard representation
+    }
+
+object Expr {
+  case object Empty extends Expr
+}
+
+case class Literal(value: Int) extends Expr with GeneratedMessage
+
+    case class Add(left: Expr, right: Expr) extends Expr with GeneratedMessage
+
+    case class Mul(left: Expr, right: Expr) extends Expr with GeneratedMessage
+
+    case class Programs(exprs: Seq[Expr]) extends GeneratedMessage
+*/
+
+// Standard case class for the Expr message, containing the
+// default style of the code that gets generated for oneofs.
+//case class ExprMessage(sealedValue: ExprMessage.SealedValue)
