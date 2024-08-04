@@ -17,7 +17,7 @@ lazy val scalac3Settings = Seq(
     //"-Yexplicit-nulls",
     //"-Wunused",
 
-    "-Wunused:all",
+    //"-Wunused:all",
     //"-Wvalue-discard",
 
     //"-Ykind-projector",

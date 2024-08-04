@@ -92,7 +92,7 @@ enum DslElement[A] {
 
   def <=(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = LesserOrEq(self, that, N)
 
-  def !=(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = NotEq(self, that, N)
+  def !==(that: DslElement[A])(using N: NumTag[A]): DslElement[Boolean] = NotEq(self, that, N)
 
   def as[B](using c: Coercion[A, B]): DslElement[B] = Coercible[A, B](self, c)
 
@@ -284,7 +284,7 @@ object DslElement {
 }
 
 //This env expect (a:int,b:int,c:dbl,d:long)
-object StaticEnv {
+object StaticEnvDsl {
   import scala.compiletime.*
   import scala.compiletime.ops.string.*
   import scala.compiletime.ops.string.{ CharAt, Length, Substring }
@@ -316,14 +316,18 @@ object StaticEnv {
         }
     }
 
-  def init(varNames: String)(varValues: Args[varNames.type]): scala.collection.immutable.Map[String, Any] = {
+  def init(varNames: String)(varValues: Args[varNames.type]): scala.collection.mutable.Map[String, Any] = {
     val values = varValues.toList
-    val envVars =
-      varNames.split(',').zipWithIndex.map { case (name, i) => (name, values(i)) }.toMap
+
+    val envVars = new scala.collection.mutable.HashMap[String, Any]()
+    varNames.split(',').zipWithIndex.foreach {
+      case (name, i) =>
+        envVars.put(name, values(i))
+    }
 
     println(s"""
-         |★ ★ ★ ★ ★ ★ ★ ★ ★ Env ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
-         |[${constValue[StaticEnv.MkLine[StaticEnv.Vars]]}]
+         |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
+         |[${constValue[StaticEnvDsl.MkLine[StaticEnvDsl.Vars]]}]
          |----------------------------------------+
          |[${envVars.mkString(",")}]
          |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
@@ -333,6 +337,53 @@ object StaticEnv {
   }
 }
 
+object DslEnv {
+  import scala.compiletime.*
+  import scala.compiletime.ops.string.Matches
+  import scala.compiletime.ops.*
+
+  type Out[T <: String] =
+    T match {
+      case _ =>
+        Matches[T, "^[a-z]*(\\s)*\\:(\\s)*int"] match {
+          case true =>
+            Int
+          case false =>
+            Matches[T, "^[a-z]*(\\s)*\\:(\\s)*long"] match {
+              case true =>
+                Long
+              case false =>
+                Matches[T, "^[a-z]*(\\s)*\\:(\\s)*double"] match {
+                  case true =>
+                    Double
+                  case false =>
+                    Nothing
+                }
+            }
+        }
+    }
+
+  inline def checkDef(typedVar: String) =
+    inline if !constValue[Matches[typedVar.type, "^[a-z]*(\\s)*\\:(\\s)*[int|dbl|long]*"]]
+    then error("Invalid definition" + codeOf(typedVar))
+
+  //
+  val vars = scala.collection.mutable.Map[String, Any]()
+
+  def setVar(typedVar: String)(varValues: Out[typedVar.type]): Out[typedVar.type] = {
+    val name = typedVar.takeWhile(_ != ':')
+    vars.put(name.trim, varValues)
+    varValues
+  }
+
+  def print() =
+    println(s"""
+         |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
+         |[${vars.mkString(",")}]
+         |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
+         |""".stripMargin)
+}
+
 extension [A: NumTag](v: A) {
   inline def num(using tag: NumTag[A]): DslElement[A] =
     DslElement.Val(v, tag)
@@ -340,20 +391,20 @@ extension [A: NumTag](v: A) {
 
 extension (v: String) {
 
-  def env[A: NumTag](using tag: NumTag[A], vars: Map[String, Any]): DslElement[A] =
+  def env[A: NumTag](using tag: NumTag[A], vars: scala.collection.mutable.Map[String, Any]): DslElement[A] =
     tag match {
       case NumTag.Integer => DslElement.Val(vars(v).asInstanceOf[Int], tag)
       case NumTag.Dbl     => DslElement.Val(vars(v).asInstanceOf[Double], tag)
       case NumTag.Lng     => DslElement.Val(vars(v).asInstanceOf[Long], tag)
     }
 
-  def int(using vars: Map[String, Any]): DslElement[Int] =
+  def int(using vars: scala.collection.mutable.Map[String, Any]): DslElement[Int] =
     DslElement.Val(vars(v).asInstanceOf[Int], NumTag.Integer)
 
-  def lng(using vars: Map[String, Any]): DslElement[Long] =
+  def lng(using vars: scala.collection.mutable.Map[String, Any]): DslElement[Long] =
     DslElement.Val(vars(v).asInstanceOf[Long], NumTag.Lng)
 
-  def dbl(using vars: Map[String, Any]): DslElement[Double] =
+  def dbl(using vars: scala.collection.mutable.Map[String, Any]): DslElement[Double] =
     DslElement.Val(vars(v).asInstanceOf[Double], NumTag.Dbl)
 
   def parse[A: NumTag](using tag: NumTag[A]): DslElement[A] =
@@ -364,21 +415,22 @@ extension (v: String) {
     }
 }
 
-@main def app(): Unit = Program()
+@main def app(): Unit =
+  // Program()
+  Program2()
 
 object Program {
   import DslElement.*
   import scala.compiletime.*
   import scala.compiletime.constValueTuple
 
-  given envVars: scala.collection.immutable.Map[String, Any] =
-    StaticEnv.init(constValue[StaticEnv.MkLine[StaticEnv.Vars]])(3, 45, Double.MaxValue, Long.MaxValue)
-    // printf("%d,%f,$s")
-    // StaticEnv.init("a,b,d,c")(1, 45, 9L, 0.2)
+  given envVars: scala.collection.mutable.Map[String, Any] =
+    StaticEnvDsl.init(constValue[StaticEnvDsl.MkLine[StaticEnvDsl.Vars]])(3, 45, Double.MaxValue, Long.MaxValue)
+  // StaticEnv.init("a,b,d,c")(1, 45, 9L, 0.2)
 
   def apply(): Unit =
     try {
-      val envConstValues = constValueTuple[StaticEnv.Vars]
+      val envConstValues = constValueTuple[StaticEnvDsl.Vars]
 
       val exp0 = 1.num + 5.num * 10.6.num.as[Int]
       val exp1 = 1.67.num * 10.num.as[Double] + 89.num.as[Double]
@@ -414,11 +466,36 @@ object Program {
       println(eval(exp5))
 
       val (a, b, c, d) = envConstValues
-      If(a.int != b.int, 1.num, 0.num)
+      If(a.int !== b.int, 1.num, 0.num)
 
       val exp6 = If(a.int >= b.int, 1.num, 0.num)
       println(serialize(exp6))
       println(eval(exp6))
+
+    }
+    catch {
+      case NonFatal(ex) => ex.printStackTrace
+    }
+}
+
+object Program2 {
+  import DslElement.*
+
+  DslEnv.checkDef("a:  int")
+
+  val aEnv = DslEnv.setVar("a: int")(3)
+  val bEnv = DslEnv.setVar("b :long")(78L)
+  val cEnv = DslEnv.setVar("c:double")(.8)
+  val dEnv = DslEnv.setVar("d :  int")(88)
+
+  DslEnv.print()
+
+  // DslEnv.vars
+  def apply(): Unit =
+    try {
+      val exp0 = If(aEnv.num !== dEnv.num, 0.num, 1.num)
+      println(serialize(exp0))
+      println(eval(exp0))
     }
     catch {
       case NonFatal(ex) => ex.printStackTrace
