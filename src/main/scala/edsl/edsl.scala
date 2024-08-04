@@ -327,9 +327,9 @@ object StaticEnvDsl {
 
     println(s"""
          |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
-         |[${constValue[StaticEnvDsl.MkLine[StaticEnvDsl.Vars]]}]
+         |[${constValue[StaticEnvDsl.MkLine[StaticEnvDsl.Vars]]}] ✅
          |----------------------------------------+
-         |[${envVars.mkString(",")}]
+         |[${envVars.mkString(",")}] ✅
          |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
          |""".stripMargin)
 
@@ -363,23 +363,23 @@ object DslEnv {
         }
     }
 
-  inline def checkDef(typedVar: String) =
+  inline def checkVar(typedVar: String) =
     inline if !constValue[Matches[typedVar.type, "^[a-z]*(\\s)*\\:(\\s)*[int|dbl|long]*"]]
     then error("Invalid definition" + codeOf(typedVar))
 
   //
-  val vars = scala.collection.mutable.Map[String, Any]()
+  val vars: scala.collection.mutable.Map[String, Any] =
+    scala.collection.mutable.Map[String, Any]()
 
-  def setVar(typedVar: String)(varValues: Out[typedVar.type]): Out[typedVar.type] = {
+  def setVar(typedVar: String)(varValues: Out[typedVar.type]): Unit /*Out[typedVar.type]*/ = {
     val name = typedVar.takeWhile(_ != ':')
     vars.put(name.trim, varValues)
-    varValues
   }
 
   def print() =
     println(s"""
          |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
-         |[${vars.mkString(",")}]
+         |[${vars.mkString(",")}] ✅
          |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
          |""".stripMargin)
 }
@@ -481,21 +481,27 @@ object Program {
 object Program2 {
   import DslElement.*
 
-  DslEnv.checkDef("a:  int")
+  DslEnv.checkVar("a:  int")
 
+  /*
   val aEnv = DslEnv.setVar("a: int")(3)
   val bEnv = DslEnv.setVar("b :long")(78L)
   val cEnv = DslEnv.setVar("c:double")(.8)
   val dEnv = DslEnv.setVar("d :  int")(88)
+   */
+
+  DslEnv.setVar("a: int")(-31)
+  DslEnv.setVar("b :int")(31)
+  DslEnv.setVar("c:double")(.8)
+  DslEnv.setVar("d :  long")(Long.MaxValue)
 
   DslEnv.print()
+  given envVars: scala.collection.mutable.Map[String, Any] = DslEnv.vars
 
-  // DslEnv.vars
   def apply(): Unit =
     try {
-      val exp0 = If(aEnv.num !== dEnv.num, 0.num, 1.num)
-      println(serialize(exp0))
-      println(eval(exp0))
+      val exp0 = If(-"a".env[Int] !== "b".env[Int], 1.num, 0.num)
+      println(serialize(exp0) + " = " + eval(exp0))
     }
     catch {
       case NonFatal(ex) => ex.printStackTrace
