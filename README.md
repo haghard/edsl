@@ -22,6 +22,9 @@ https://github.com/MateuszKubuszok/Scala2vsScala3MacrosExamples/tree/master
 https://www.reddit.com/r/scala/comments/1eaz82v/i_compiled_a_list_of_scala_3_metaprograming/
 https://youtu.be/olBrvPJlXJc
 
+
+expr-dotty-05-08-2023: https://github.com/road21/talks?tab=readme-ov-file
+
 ## License
 
 This code is open source software licensed under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).

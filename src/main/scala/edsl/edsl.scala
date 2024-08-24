@@ -341,6 +341,8 @@ object DslEnv {
   import scala.compiletime.*
   import scala.compiletime.ops.string.Matches
   import scala.compiletime.ops.*
+  import compiletime.constValue
+  import compiletime.ops.int.S
 
   type Out[T <: String] =
     T match {
@@ -481,7 +483,7 @@ object Program {
 object Program2 {
   import DslElement.*
 
-  DslEnv.checkVar("a:  int")
+  //DslEnv.checkVar("a§b: int")
 
   /*
   val aEnv = DslEnv.setVar("a: int")(3)

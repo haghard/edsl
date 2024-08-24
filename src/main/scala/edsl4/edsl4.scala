@@ -64,6 +64,18 @@ object Num {
     def minus(a: (Double, Double), b: (Double, Double)): (Double, Double) = (a._1 - b._1, a._2 - b._2)
     override val toString = "d/d"
   }
+
+  given Dbl3: Num[((Double, Double), Int)] with {
+    val code: Byte = 0x07
+    def sum(a: ((Double, Double), Int), b: ((Double, Double), Int)): ((Double, Double), Int) =
+      ((a._1._1 + b._1._1, a._1._2 + b._1._2), a._2 + b._2)
+
+    def minus(a: ((Double, Double), Int), b: ((Double, Double), Int)): ((Double, Double), Int) =
+      ((a._1._1 - b._1._1, a._1._2 - b._1._2), a._2 - b._2)
+
+    override val toString = "((d,d),i)"
+  }
+
 }
 
 // end Num
@@ -141,26 +153,43 @@ object Program {
   import Expr.*
 
   // All Types (combinations) the DSL supports
-  type DslTypes = Double :: Int :: (Double, Double) :: (Double, Int) :: ((Double, Int), Int) :: End
+  type DslTypes = Double :: Int :: (Double, Double) :: (Double, Int) :: ((Double, Int), Int) :: ((Double, Double), Int) :: TypeList.End
 
   def apply(): Unit = {
     import Instances.*
 
-    val expr: Expr[DslTypes, Double] = 2.78.lit + 78.5.lit - 1.1.lit + 6.lit
-    val res = eval(expr)
-    println(res)
-
     type RecordA = Expr[DslTypes, (Double, Int)]
-    val a: RecordA = 1.4.lit <> 1.lit
+    val a: RecordA = 1.47.lit <> 1.lit
     val b: RecordA = 1.3.lit <> 4.lit
-    println(eval(a + b))
+    val c: RecordA = 1.3.lit zip 4.lit
+    
+    //summon[IsElementOf[(Double, Int), TypeList]]
+    println(eval(a + b - c))
 
-    type Record = Expr[DslTypes, ((Double, Int), Int)]
-    val c: Record = 1.4.lit <> 1.lit <> 8.lit
-    val d: Record = 1.3.lit zip 2.lit zip 5.lit
+    val s: Expr[DslTypes, Int] = 3.lit
+    val z: Expr[DslTypes, Double] = 3.1.lit
+    val x: Expr[DslTypes, Double] = 3.2.lit
 
-    println(eval(c + d))
-    println(eval(c - d))
+    type RecordB = Expr[DslTypes, ((Double, Double), Int)]
+    val r0: RecordB = x <> z <> s
+    var r1: RecordB = x zip z zip s
+    val r2 = eval(r0 - r1)
+    val r3 = eval(r0 + r1)
+    println(r2)
+    println(r3)
+
+
+    val s1: Expr[DslTypes, Double] = 3.1.lit
+    val z1: Expr[DslTypes, Int] = 3.lit
+    val x1: Expr[DslTypes, Int] = 2.lit
+
+    type RecordC = Expr[DslTypes, ((Double, Int), Int)]
+    val res0: RecordC = s1 <> z1 <> x1
+    var res1: RecordC = s1 zip z1 zip x1
+    val res2 = eval(r0 - r1)
+    val res3 = eval(r0 + r1)
+    println(r2)
+    println(r3)
   }
 }
 
@@ -169,4 +198,4 @@ object Program {
 /*
 https://youtu.be/jtxO7LJXW0Q?list=LL
 https://github.com/zio/zio-constraintless/blob/master/examples/shared/src/main/scala/zio/constraintless/examples/Expr.scala
- */
+*/
