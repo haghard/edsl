@@ -153,7 +153,8 @@ object Program {
   import Expr.*
 
   // All Types (combinations) the DSL supports
-  type DslTypes = Double :: Int :: (Double, Double) :: (Double, Int) :: ((Double, Int), Int) :: ((Double, Double), Int) :: TypeList.End
+  type DslTypes = Double :: Int :: (Double, Double) :: (Double, Int) :: ((Double, Int), Int) ::
+    ((Double, Double), Int) :: TypeList.End
 
   def apply(): Unit = {
     import Instances.*
@@ -162,8 +163,8 @@ object Program {
     val a: RecordA = 1.47.lit <> 1.lit
     val b: RecordA = 1.3.lit <> 4.lit
     val c: RecordA = 1.3.lit zip 4.lit
-    
-    //summon[IsElementOf[(Double, Int), TypeList]]
+
+    // summon[IsElementOf[(Double, Int), TypeList]]
     println(eval(a + b - c))
 
     val s: Expr[DslTypes, Int] = 3.lit
@@ -177,7 +178,6 @@ object Program {
     val r3 = eval(r0 + r1)
     println(r2)
     println(r3)
-
 
     val s1: Expr[DslTypes, Double] = 3.1.lit
     val z1: Expr[DslTypes, Int] = 3.lit
@@ -198,4 +198,4 @@ object Program {
 /*
 https://youtu.be/jtxO7LJXW0Q?list=LL
 https://github.com/zio/zio-constraintless/blob/master/examples/shared/src/main/scala/zio/constraintless/examples/Expr.scala
-*/
+ */

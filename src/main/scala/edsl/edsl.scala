@@ -483,7 +483,7 @@ object Program {
 object Program2 {
   import DslElement.*
 
-  //DslEnv.checkVar("a§b: int")
+  // DslEnv.checkVar("a§b: int")
 
   /*
   val aEnv = DslEnv.setVar("a: int")(3)

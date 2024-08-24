@@ -70,14 +70,9 @@ libraryDependencies ++= Seq(
   "dev.zio" %% "zio-constraintless" % "0.3.3",
 )
 
-//Compile / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused:imports", "-Yno-imports", "-deprecation")
-
 promptTheme := ScalapenosTheme
-
-//scalafmtOnCompile := true
 
 Compile / PB.targets := Seq(scalapb.gen() -> (Compile / sourceManaged).value)
 
-addCommandAlias("c", "compile")
-//addCommandAlias("c", "scalafmt;compile")
+addCommandAlias("c", "scalafmt;compile")
 addCommandAlias("r", "reload")
