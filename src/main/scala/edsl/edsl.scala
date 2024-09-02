@@ -432,7 +432,6 @@ object Program {
 
   def apply(): Unit =
     try {
-      val envConstValues = constValueTuple[StaticEnvDsl.Vars]
 
       val exp0 = 1.num + 5.num * 10.6.num.as[Int]
       val exp1 = 1.67.num * 10.num.as[Double] + 89.num.as[Double]
@@ -467,7 +466,8 @@ object Program {
       println(serialize(exp5))
       println(eval(exp5))
 
-      val (a, b, c, d) = envConstValues
+      val (a, b, c, d) = constValueTuple[StaticEnvDsl.Vars]
+
       If(a.int !== b.int, 1.num, 0.num)
 
       val exp6 = If(a.int >= b.int, 1.num, 0.num)

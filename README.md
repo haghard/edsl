@@ -14,16 +14,20 @@ https://blog.rockthejvm.com/givens-and-implicits/
 https://github.com/zio/zio-constraintless/blob/master/examples/shared/src/main/scala/zio/constraintless/examples/Expr.scala
 
 
-
 https://blog.rockthejvm.com/practical-type-level-programming/
 https://github.com/ncreep/scala3-flat-json-blog
 
 https://github.com/MateuszKubuszok/Scala2vsScala3MacrosExamples/tree/master
 https://www.reddit.com/r/scala/comments/1eaz82v/i_compiled_a_list_of_scala_3_metaprograming/
 https://youtu.be/olBrvPJlXJc
+   
 
-
-expr-dotty-05-08-2023: https://github.com/road21/talks?tab=readme-ov-file
+TODO: look at  
+1) expr-dotty-05-08-2023: https://github.com/road21/talks?tab=readme-ov-file
+2) delambdify:
+   https://youtu.be/caGbfOSvrGQ
+   https://github.com/TomasMikula/libretto/tree/main/lambda-examples/src
+ 
 
 ## License
 
