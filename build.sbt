@@ -1,6 +1,7 @@
 import sbt._
 
 lazy val ScalafixOrganizeImportsVersion = "0.6.0"
+val AmmoniteVersion = "3.0.0"
 
 lazy val `edsl` = project.in(file(".")).settings(commonSettings)
 
@@ -50,7 +51,6 @@ lazy val commonSettings = scalac3Settings ++ Seq(
   //sbt headerCreate
   licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
 
-  //https://scala-lang.org/blog/2023/05/30/scala-3.3.3-released.html
   scalaVersion := "3.5.1",
   headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
   headerLicense  := Some(HeaderLicense.Custom(
@@ -67,7 +67,18 @@ libraryDependencies ++= Seq(
   "com.softwaremill.quicklens" %% "quicklens" % "1.9.7",
   "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
   "dev.zio" %% "zio-constraintless" % "0.3.3",
+
+  ("com.lihaoyi" % "ammonite" % AmmoniteVersion % "test" cross CrossVersion.full)
+    .exclude("com.thesamet.scalapb", "lenses_2.13")
+    .exclude("com.thesamet.scalapb", "scalapb-runtime_2.13")
 )
+
+Test / sourceGenerators += Def.task {
+  val file = (Test / sourceManaged).value / "amm.scala"
+  IO.write(file, """object amm extends App { ammonite.Main().run() }""")
+  Seq(file)
+}.taskValue
+
 
 promptTheme := ScalapenosTheme
 
