@@ -1,4 +1,4 @@
-addSbtPlugin("io.spray"           %   "sbt-revolver"    % "0.9.1")
+addSbtPlugin("io.spray"           %   "sbt-revolver"    % "0.10.0")
 addSbtPlugin("com.scalapenos"     %   "sbt-prompt"      % "1.0.2")
 addSbtPlugin("org.scalameta"      %   "sbt-scalafmt"    % "2.5.1")
 addSbtPlugin("de.heikoseeberger"  %   "sbt-header"      % "5.0.0")

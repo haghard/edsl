@@ -29,10 +29,19 @@ object TupleValueExtractor {
     }
   }
 
-  @main def testTupleExtractor = {
+  type TP = (Int, String, List[Int])
 
-    type TP = (Int, String, List[Int])
+  def checkTuple[T](v: T, x: TP)(using selector: Extract[TupleValueExtractor.TP, T]): Unit = {
+    val bool = selector(x) == v
+    println(bool)
+  }
+
+  @main def testTupleExtractor = {
     val x: TP = (42, "hi", List(1, 2, 3))
+
+    checkTuple(11, x) // true
+    checkTuple("hi", x) // true
+    checkTuple(List(1, 2), x) // false
 
     val selectInt = summon[Extract[TP, Int]]
     println(selectInt(x))
