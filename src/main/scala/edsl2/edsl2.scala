@@ -31,11 +31,12 @@ enum Exp[T] {
   }
 
   def eval: T = this match {
-    case Num(value)                  => value
-    case Bool(value)                 => value
-    case Add(lhs, rhs)               => lhs.eval + rhs.eval
-    case Eq(lhs, rhs)                => lhs.eval == rhs.eval
-    case Cond(cond, ifTrue, ifFalse) => if cond.eval then ifTrue.eval else ifFalse.eval
+    case Num(value)    => value
+    case Bool(value)   => value
+    case Add(lhs, rhs) => lhs.eval + rhs.eval
+    case Eq(lhs, rhs)  => lhs.eval == rhs.eval
+    case Cond(cond, ifTrue, ifFalse) =>
+      if cond.eval then ifTrue.eval else ifFalse.eval
   }
 }
 

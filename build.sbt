@@ -1,7 +1,7 @@
 import sbt._
 
 lazy val ScalafixOrganizeImportsVersion = "0.6.0"
-val AmmoniteVersion = "3.0.0"
+val AmmoniteVersion = "3.0.0" //"3.1.0"
 
 lazy val `edsl` = project.in(file(".")).settings(commonSettings)
 
@@ -67,6 +67,8 @@ libraryDependencies ++= Seq(
   "com.softwaremill.quicklens" %% "quicklens" % "1.9.7",
   "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
   "dev.zio" %% "zio-constraintless" % "0.3.3",
+
+  "org.typelevel" %% "cats-core" % "2.12.0",
 
   ("com.lihaoyi" % "ammonite" % AmmoniteVersion % "test" cross CrossVersion.full)
     .exclude("com.thesamet.scalapb", "lenses_2.13")

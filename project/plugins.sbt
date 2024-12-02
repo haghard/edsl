@@ -8,4 +8,4 @@ addSbtPlugin("ch.epfl.scala"      %   "sbt-scalafix"    % "0.12.1")
 addSbtPlugin("com.eed3si9n"       %   "sbt-buildinfo"   %  "0.12.0")
 
 //https://scalameta.org/docs/semanticdb/guide.html#consuming-semanticdb
-addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "4.7.8" cross CrossVersion.full)
+addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "4.11.1" cross CrossVersion.full)
